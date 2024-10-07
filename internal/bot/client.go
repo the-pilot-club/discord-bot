@@ -26,8 +26,7 @@ func Run() {
 	session.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
 
 	session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
-		s.UpdateGameStatus(0, "Microsoft Flight Simulator 2020")
-		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
+		handlers.HandleCLientReady(s)
 	})
 
 	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
