@@ -8,6 +8,10 @@ import (
 
 func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
+	chnl, _ := s.Channel(m.ChannelID)
+	if chnl.Type == 1 || chnl.Type == 3 {
+		return
+	}
 	switch strings.ToLower(m.Content) {
 	case "bump wars":
 		// function here
