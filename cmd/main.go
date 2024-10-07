@@ -10,7 +10,7 @@ import (
 
 func main() {
 	bot.Run()
-	if config.Env != "dev" {
+	if config.Env == "production" {
 		err := sentry.Init(sentry.ClientOptions{
 			Dsn:         config.SentryDSN,
 			Debug:       false,
