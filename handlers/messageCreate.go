@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"github.com/bwmarrin/discordgo"
-	"log"
 	"strings"
+	eventresponses "tpc-discord-bot/event-responses"
 )
 
 func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	switch m.Content {
+	switch strings.ToLower(m.Content) {
 	case "bump wars":
 		// function here
 		break
@@ -22,23 +22,38 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		//function here
 		break
 	case "moderator":
-		// function here
+		eventresponses.ModeratorMessage(s, m)
 		break
 	case "msfs 2020 help":
 		//function here
 		break
-
-	case "help":
+	case "rules":
+		// function here
+		break
+	case "support":
 		//function here
 		break
-
+	case "tpc callsign":
+		//function here
+		break
+	case "tpc livery":
+		//function here
+		break
 	}
 
-	if strings.Contains(strings.ToLower(m.Content), "moderator") {
-		log.Println(m.MessageReference)
-		_, err := s.ChannelMessageSendReply(m.ChannelID, "Hello I am Here to Help!", m.Reference())
-		if err != nil {
-			log.Println(err)
-		}
+	if strings.Contains(strings.ToLower(m.Content), "join vatsim") {
+		// function here
+	} else if strings.Contains(strings.ToLower(m.Content), "what server") {
+		// function here
+	} else if strings.Contains(strings.ToLower(m.Content), "thanks tpc") {
+		//function here
+	} else if strings.Contains(strings.ToLower(m.Content), "what is vatsim?") {
+		// function here
 	}
+
+	if m.Type == 8 || m.Type == 9 || m.Type == 10 || m.Type == 11 {
+		// booster function
+	}
+
+	//TODO: Add Auto Reactions for Screenshots
 }
