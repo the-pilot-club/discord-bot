@@ -1,7 +1,13 @@
 package event_responses
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"fmt"
+	"github.com/bwmarrin/discordgo"
+	"tpc-discord-bot/internal/config"
+)
 
 func ModeratorMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
-	s.ChannelMessageSendReply(m.ChannelID, "A Mod will be with you shortly", m.Reference())
+	RoleId := config.GetRoleId(m.GuildID, "Moderator")
+	Message := fmt.Sprintf("A <@&%v> will be with you shortly", RoleId)
+	s.ChannelMessageSendReply(m.ChannelID, Message, m.Reference())
 }
