@@ -114,14 +114,11 @@ func GetRoleId(id string, name string) string {
 
 func GetChannelId(id string, name string) string {
 	Cfg, _ := configs[id]
-	fmt.Println(Cfg)
 	var ChannelId string
-	fmt.Println(Cfg.Channels)
 	for i := 0; i < len(Cfg.Channels); i++ {
 		if Cfg.Channels[i].Name == name {
 			ChannelId = Cfg.Channels[i].Id
 		}
 	}
-	fmt.Println(ChannelId)
 	return ChannelId
 }

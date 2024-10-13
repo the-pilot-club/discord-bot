@@ -52,7 +52,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	} else if strings.Contains(strings.ToLower(m.Content), "thanks tpc") {
 		//function here
 	} else if strings.Contains(strings.ToLower(m.Content), "what is vatsim?") {
-		// function here
+		eventresponses.WhatIsVatsimMessage(s, m)
 	}
 
 	if m.Type == 8 || m.Type == 9 || m.Type == 10 || m.Type == 11 {
