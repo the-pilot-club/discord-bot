@@ -15,6 +15,9 @@ roles:
     name: Flight Instructor
   - name: Moderator
     id: 1148307481391542288
+channels:
+  - name: Git Channel
+    id: 1148307485904601172
 baseurl:
   - name: FCP
     link: https://flightcrew-beta.thepilotclub.org

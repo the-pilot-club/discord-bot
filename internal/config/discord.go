@@ -16,13 +16,19 @@ var Env = os.Getenv("GO_ENV")
 var ConfigPath = os.Getenv("CONFIG_PATH")
 
 type ServerConfig struct {
-	Id      string       `yaml:"id"`
-	Name    string       `yaml:"name"`
-	Roles   []RoleConfig `yaml:"roles"`
-	BaseUrl []BaseUrls   `yaml:"baseurl"`
+	Id       string          `yaml:"id"`
+	Name     string          `yaml:"name"`
+	Roles    []RoleConfig    `yaml:"roles"`
+	Channels []ChannelConfig `yaml:"channels"`
+	BaseUrl  []BaseUrls      `yaml:"baseurl"`
 }
 
 type RoleConfig struct {
+	Name string `yaml:"name"`
+	Id   string `yaml:"id"`
+}
+
+type ChannelConfig struct {
 	Name string `yaml:"name"`
 	Id   string `yaml:"id"`
 }
@@ -106,10 +112,16 @@ func GetRoleId(id string, name string) string {
 	return RoleId
 }
 
-func GetGitChannel() int {
-	if Env == "dev" {
-		return 1148307485904601172
-	} else {
-		return 1
+func GetChannelId(id string, name string) string {
+	Cfg, _ := configs[id]
+	fmt.Println(Cfg)
+	var ChannelId string
+	fmt.Println(Cfg.Channels)
+	for i := 0; i < len(Cfg.Channels); i++ {
+		if Cfg.Channels[i].Name == name {
+			ChannelId = Cfg.Channels[i].Id
+		}
 	}
+	fmt.Println(ChannelId)
+	return ChannelId
 }
