@@ -41,7 +41,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		//function here
 		break
 	case "tpc livery":
-		//function here
+		eventresponses.TpcLiveriesMessage(s, m)
 		break
 	}
 

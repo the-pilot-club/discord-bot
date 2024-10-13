@@ -19,3 +19,22 @@ func WhatIsVatsimMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		"\n \nOn VATSIM you can join people on the other side of the planet to fly and control, with nothing more than a home computer! If you would like more information, please go to https://www.thepilotclub.org/resources#VATSIM"
 	s.ChannelMessageSendReply(m.ChannelID, Message, m.Reference())
 }
+func TpcLiveriesMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	components := []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					URL:   "https://www.thepilotclub.org/liveries",
+					Label: "TPC Liveries",
+					Style: discordgo.LinkButton,
+				},
+			},
+		},
+	}
+	Message := &discordgo.MessageSend{
+		Components: components,
+		Content:    "Club liveries can be downloaded here:",
+		Reference:  m.Reference(),
+	}
+	s.ChannelMessageSendComplex(m.ChannelID, Message)
+}
