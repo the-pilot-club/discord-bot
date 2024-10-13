@@ -38,3 +38,39 @@ func TpcLiveriesMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	s.ChannelMessageSendComplex(m.ChannelID, Message)
 }
+
+func TpcCallsignMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	components := []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					URL:   "https://flightcrew.thepilotclub.org",
+					Label: "Get a Callsign Here!",
+					Style: discordgo.LinkButton,
+				},
+			},
+		},
+	}
+	embed := &discordgo.MessageEmbed{
+		Title: "TPC Callsign",
+		Color: 3651327,
+		Fields: []*discordgo.MessageEmbedField{
+			{
+				Name:  "How to get a TPC Callsign",
+				Value: "When flying group flights you get an extra 1000xp points for using a TPC callsign during the flight.",
+			},
+			{
+				Name:  "\u200b",
+				Value: "To get a TPC callsign you just need to register one that has not yet been taken. You can do so with the button below and fill in the blanks!",
+			},
+		},
+		Footer: &discordgo.MessageEmbedFooter{Text: "Made by TPC Dev Team"},
+	}
+	Message := &discordgo.MessageSend{
+		Components: components,
+		Embed:      embed,
+		Content:    "Club liveries can be downloaded here:",
+		Reference:  m.Reference(),
+	}
+	s.ChannelMessageSendComplex(m.ChannelID, Message)
+}
