@@ -74,3 +74,15 @@ func TpcCallsignMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	s.ChannelMessageSendComplex(m.ChannelID, Message)
 }
+
+func TpcThanksMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	embed := &discordgo.MessageEmbed{
+		Author: &discordgo.MessageEmbedAuthor{
+			Name:    "The Pilot Club",
+			IconURL: "https://static1.squarespace.com/static/614689d3918044012d2ac1b4/t/616ff36761fabc72642806e3/1634726781251/TPC_FullColor_TransparentBg_1280x1024_72dpi.png",
+		},
+		Color:       3651327,
+		Description: "You're Welcome! Anytime!",
+	}
+	s.ChannelMessageSendEmbedReply(m.ChannelID, embed, m.Reference())
+}

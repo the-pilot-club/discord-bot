@@ -50,7 +50,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	} else if strings.Contains(strings.ToLower(m.Content), "what server") {
 		// function here
 	} else if strings.Contains(strings.ToLower(m.Content), "thanks tpc") {
-		//function here
+		eventresponses.TpcThanksMessage(s, m)
 	} else if strings.Contains(strings.ToLower(m.Content), "what is vatsim?") {
 		eventresponses.WhatIsVatsimMessage(s, m)
 	}
