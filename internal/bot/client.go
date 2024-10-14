@@ -26,11 +26,12 @@ func Run() {
 	session.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
 
 	session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+		go config.IntervalReloadConfigs()
 		handlers.HandleCLientReady(s)
 	})
 
-	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		handlers.MessageCreateHandler(s, m)
+	go session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
+		go handlers.MessageCreateHandler(s, m)
 	})
 
 	err = session.Open()

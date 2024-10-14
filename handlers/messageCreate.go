@@ -26,7 +26,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		//function here
 		break
 	case "moderator":
-		eventresponses.ModeratorMessage(s, m)
+		go eventresponses.ModeratorMessage(s, m)
 		break
 	case "msfs 2020 help":
 		//function here
@@ -38,10 +38,10 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		//function here
 		break
 	case "tpc callsign":
-		eventresponses.TpcCallsignMessage(s, m)
+		go eventresponses.TpcCallsignMessage(s, m)
 		break
 	case "tpc livery":
-		eventresponses.TpcLiveriesMessage(s, m)
+		go eventresponses.TpcLiveriesMessage(s, m)
 		break
 	}
 
@@ -50,9 +50,9 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	} else if strings.Contains(strings.ToLower(m.Content), "what server") {
 		// function here
 	} else if strings.Contains(strings.ToLower(m.Content), "thanks tpc") {
-		eventresponses.TpcThanksMessage(s, m)
+		go eventresponses.TpcThanksMessage(s, m)
 	} else if strings.Contains(strings.ToLower(m.Content), "what is vatsim?") {
-		eventresponses.WhatIsVatsimMessage(s, m)
+		go eventresponses.WhatIsVatsimMessage(s, m)
 	}
 
 	if m.Type == 8 || m.Type == 9 || m.Type == 10 || m.Type == 11 {
