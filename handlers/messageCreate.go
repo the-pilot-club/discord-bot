@@ -16,7 +16,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	switch strings.ToLower(m.Content) {
 	case "bump wars":
-		// function here
+		eventresponses.BumpWarsMessage(s, m)
 		break
 	case "what is fno?":
 		//function here
