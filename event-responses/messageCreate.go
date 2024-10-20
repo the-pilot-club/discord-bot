@@ -18,6 +18,7 @@ func WhatIsVatsimMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		"Air Traffic Control (ATC) is available in our communities throughout the world, operating as close as possible to the real-life procedures and utilizing real-life weather, airport and route data." +
 		"\n \nOn VATSIM you can join people on the other side of the planet to fly and control, with nothing more than a home computer! If you would like more information, please go to https://www.thepilotclub.org/resources#VATSIM"
 	s.ChannelMessageSendReply(m.ChannelID, Message, m.Reference())
+	return
 }
 func TpcLiveriesMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	components := []discordgo.MessageComponent{
@@ -37,6 +38,7 @@ func TpcLiveriesMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		Reference:  m.Reference(),
 	}
 	s.ChannelMessageSendComplex(m.ChannelID, Message)
+	return
 }
 
 func TpcCallsignMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -73,6 +75,7 @@ func TpcCallsignMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		Reference:  m.Reference(),
 	}
 	s.ChannelMessageSendComplex(m.ChannelID, Message)
+	return
 }
 
 func TpcThanksMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -85,4 +88,11 @@ func TpcThanksMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		Description: "You're Welcome! Anytime!",
 	}
 	s.ChannelMessageSendEmbedReply(m.ChannelID, embed, m.Reference())
+	return
+}
+
+func BoosterMessageContent(s *discordgo.Session, m *discordgo.MessageCreate) {
+	var CrewChat = config.GetChannelId(m.GuildID, "Crew Chat")
+	message := fmt.Sprintf("<@%v> Thank you for boosting the club!", m.Author.ID)
+	s.ChannelMessageSend(CrewChat, message)
 }

@@ -18,6 +18,13 @@ roles:
 channels:
   - name: Git Channel
     id: 1148307485904601172
+  - name: Screenshot Contest
+    id: 1148307483002155098
+  - name: Crew Chat
+    id: 1148307482557554763
+emojis:
+  - name: TPC Reaction
+    id: :giveaway:1225560451279097926
 baseurl:
   - name: FCP
     link: https://flightcrew-beta.thepilotclub.org

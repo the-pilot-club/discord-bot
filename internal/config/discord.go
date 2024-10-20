@@ -20,6 +20,7 @@ type ServerConfig struct {
 	Name     string          `yaml:"name"`
 	Roles    []RoleConfig    `yaml:"roles"`
 	Channels []ChannelConfig `yaml:"channels"`
+	Emojis   []EmojiConfig   `yaml:"emojis"`
 	BaseUrl  []BaseUrls      `yaml:"baseurl"`
 }
 
@@ -29,6 +30,11 @@ type RoleConfig struct {
 }
 
 type ChannelConfig struct {
+	Name string `yaml:"name"`
+	Id   string `yaml:"id"`
+}
+
+type EmojiConfig struct {
 	Name string `yaml:"name"`
 	Id   string `yaml:"id"`
 }
@@ -121,4 +127,15 @@ func GetChannelId(id string, name string) string {
 		}
 	}
 	return ChannelId
+}
+
+func GetEmojiId(id string, name string) string {
+	Cfg, _ := configs[id]
+	var EmojiId string
+	for i := 0; i < len(Cfg.Emojis); i++ {
+		if Cfg.Emojis[i].Name == name {
+			EmojiId = Cfg.Emojis[i].Id
+		}
+	}
+	return EmojiId
 }

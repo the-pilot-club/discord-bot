@@ -4,6 +4,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"strings"
 	eventresponses "tpc-discord-bot/event-responses"
+	"tpc-discord-bot/internal/config"
 )
 
 func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -12,6 +13,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if chnl.Type == 1 || chnl.Type == 3 {
 		return
 	}
+
 	switch strings.ToLower(m.Content) {
 	case "bump wars":
 		// function here
@@ -56,8 +58,23 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if m.Type == 8 || m.Type == 9 || m.Type == 10 || m.Type == 11 {
-		// booster function
+		go eventresponses.BoosterMessageContent(s, m)
 	}
 
-	//TODO: Add Auto Reactions for Screenshots
+	var Contest = config.GetChannelId(m.GuildID, "Screenshot Contest")
+
+	if m.ChannelID == Contest || strings.Contains(chnl.Name, "SCREENSHOT CONTEST") || chnl.ParentID == Contest {
+		var ToReact bool
+		for i := 0; i < len(m.Attachments); i++ {
+			if strings.Contains(m.Attachments[i].ContentType, "image") {
+				ToReact = true
+			}
+		}
+		if ToReact == true {
+			emoji := config.GetEmojiId(m.GuildID, "TPC Reaction")
+			s.MessageReactionAdd(m.ChannelID, m.ID, emoji)
+		}
+		return
+	}
+	return
 }
