@@ -18,37 +18,37 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	switch strings.ToLower(m.Content) {
 	case "bump wars":
 		eventresponses.BumpWarsMessage(s, m)
-		break
+		return
 	case "what is fno?":
 		eventresponses.FnoMessage(s, m)
-		break
+		return
 	case "invite link":
 		eventresponses.InviteLink(s, m)
-		break
+		return
 	case "invite link mrs bot":
 		eventresponses.InviteLink(s, m)
-		break
+		return
 	case "moderator":
 		eventresponses.ModeratorMessage(s, m)
-		break
+		return
 	case "msfs2020 help":
 		eventresponses.Msfs2020Message(s, m)
-		break
+		return
 	case "rules":
 		eventresponses.RulesMessage(s, m)
-		break
+		return
 	case "support":
 		eventresponses.SupportMessage(s, m)
-		break
+		return
 	case "tpc callsign":
 		eventresponses.TpcCallsignMessage(s, m)
-		break
+		return
 	case "tpc livery":
 		eventresponses.TpcLiveriesMessage(s, m)
-		break
+		return
 	case "world tour":
 		eventresponses.WorldTourMessage(s, m)
-		break
+		return
 	}
 
 	if strings.Contains(strings.ToLower(m.Content), "join vatsim") {
@@ -74,11 +74,10 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				ToReact = true
 			}
 		}
-		if ToReact == true {
+		if ToReact {
 			emoji := config.GetEmojiId(m.GuildID, "TPC Reaction")
 			s.MessageReactionAdd(m.ChannelID, m.ID, emoji)
 		}
 		return
 	}
-	return
 }
