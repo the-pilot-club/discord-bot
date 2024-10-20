@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"github.com/bwmarrin/discordgo"
 	"strings"
 	eventresponses "tpc-discord-bot/event-responses"
 	"tpc-discord-bot/internal/config"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -37,7 +38,7 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		eventresponses.RulesMessage(s, m)
 		break
 	case "support":
-		//function here
+		eventresponses.SupportMessage(s, m)
 		break
 	case "tpc callsign":
 		eventresponses.TpcCallsignMessage(s, m)
@@ -45,12 +46,15 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	case "tpc livery":
 		eventresponses.TpcLiveriesMessage(s, m)
 		break
+	case "world tour":
+		eventresponses.WorldTourMessage(s, m)
+		break
 	}
 
 	if strings.Contains(strings.ToLower(m.Content), "join vatsim") {
-		// function here
+		eventresponses.JoinVatsimMessage(s, m)
 	} else if strings.Contains(strings.ToLower(m.Content), "what server") {
-		// function here
+		eventresponses.WhatServerMessage(s, m)
 	} else if strings.Contains(strings.ToLower(m.Content), "thanks tpc") {
 		eventresponses.TpcThanksMessage(s, m)
 	} else if strings.Contains(strings.ToLower(m.Content), "what is vatsim?") {

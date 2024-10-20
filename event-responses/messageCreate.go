@@ -2,8 +2,9 @@ package event_responses
 
 import (
 	"fmt"
-	"github.com/bwmarrin/discordgo"
 	"tpc-discord-bot/internal/config"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 func ModeratorMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -184,5 +185,77 @@ func RulesMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		Reference:  m.Reference(),
 	}
 	s.ChannelMessageSendComplex(m.ChannelID, Message)
+	return
+}
+
+func SupportMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	components := []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					URL:   "https://support.thepilotclub.org/open.php",
+					Label: "The Pilot Club Support",
+					Style: discordgo.LinkButton,
+				},
+			},
+		},
+	}
+	Message := &discordgo.MessageSend{
+		Components: components,
+		Content:    "To get support or submit feedback, click the button below! Thank you for being a valued member of The Pilot Club!!",
+		Reference:  m.Reference(),
+	}
+	s.ChannelMessageSendComplex(m.ChannelID, Message)
+	return
+}
+
+func WorldTourMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	components := []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					URL:   "https://discord.com/channels/830201397974663229/833198809701679124/848245312815497237",
+					Label: "Get the World Tour Role",
+					Style: discordgo.LinkButton,
+				},
+			},
+		},
+	}
+	Message := &discordgo.MessageSend{
+		Components: components,
+		Content:    "Want to join the World Tour Flight? Proceed to this message and click the World Tour Logo!",
+		Reference:  m.Reference(),
+	}
+	s.ChannelMessageSendComplex(m.ChannelID, Message)
+	return
+}
+
+func JoinVatsimMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	components := []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					URL:   "https://www.thepilotclub.org/resources#VATSIM",
+					Label: "Joining VATSIM",
+					Style: discordgo.LinkButton,
+				},
+			},
+		},
+	}
+	Message := &discordgo.MessageSend{
+		Components: components,
+		Content:    "To Join VATSIM you should go to this website and click register!",
+		Reference:  m.Reference(),
+	}
+	s.ChannelMessageSendComplex(m.ChannelID, Message)
+	return
+}
+
+func WhatServerMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	Message := "We do not use the default Microsoft Flight Simulator 2020 Multiplayer Server here in The Pilot Club. We use VATSIM for all of our group flights!\n \n" +
+		"VATSIM is the Virtual Air Traffic Simulation network, connecting people from around the world flying online or acting as virtual Air Traffic Controllers. " +
+		"\n \nThis completely free network allows aviation enthusiasts the ultimate experience. Air Traffic Control (ATC) is available in our communities throughout the world, operating as close as possible to the real-life procedures and utilizing real-life weather, airport and route data. " +
+		"\n \nOn VATSIM you can join people on the other side of the planet to fly and control, with nothing more than a home computer! If you would like more information, please go to https://vatsim.net"
+	s.ChannelMessageSendReply(m.ChannelID, Message, m.Reference())
 	return
 }
