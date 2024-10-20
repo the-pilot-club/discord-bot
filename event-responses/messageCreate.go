@@ -116,4 +116,73 @@ func BumpWarsMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		" It gives our community a chance to grow and allows you to be involved in the process. Have fun!"
 
 	s.ChannelMessageSendReply(m.ChannelID, message, m.Reference())
+	return
+}
+
+func FnoMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	components := []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					URL:   "https://docs.google.com/document/d/1n2dorXXbRavCci0FqYMMDQngrYqnn3UXNDAiK95Kc98",
+					Label: "Friday Night Operations Information",
+					Style: discordgo.LinkButton,
+				},
+			},
+		},
+	}
+	Message := &discordgo.MessageSend{
+		Components: components,
+		Content:    "FNO Stands for Friday Night Ops. You can find more information here!",
+		Reference:  m.Reference(),
+	}
+	s.ChannelMessageSendComplex(m.ChannelID, Message)
+	return
+}
+
+func InviteLink(s *discordgo.Session, m *discordgo.MessageCreate) {
+	s.ChannelMessageSendReply(m.ChannelID, "Please use this link when inviting somebody to the server: https://thepilotclub.org", m.Reference())
+	return
+}
+
+func Msfs2020Message(s *discordgo.Session, m *discordgo.MessageCreate) {
+	components := []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					URL:   "https://www.reddit.com/r/flightsim/wiki/msfsfaq",
+					Label: "Microsoft Flight Simulator 2020 FAQ",
+					Style: discordgo.LinkButton,
+				},
+			},
+		},
+	}
+	Message := &discordgo.MessageSend{
+		Components: components,
+		Content:    "Check out MSFS2020 FAQ!",
+		Reference:  m.Reference(),
+	}
+	s.ChannelMessageSendComplex(m.ChannelID, Message)
+	return
+}
+
+func RulesMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	components := []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					URL:   "discord://-/channels/830201397974663229/833198809701679124/848232804282138644",
+					Label: "The Pilot Club Rules",
+					Style: discordgo.LinkButton,
+				},
+			},
+		},
+	}
+	Message := &discordgo.MessageSend{
+		Components: components,
+		Content:    "You can find the club rules here!",
+		Reference:  m.Reference(),
+	}
+	s.ChannelMessageSendComplex(m.ChannelID, Message)
+	return
 }

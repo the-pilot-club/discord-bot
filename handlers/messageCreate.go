@@ -19,31 +19,31 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		eventresponses.BumpWarsMessage(s, m)
 		break
 	case "what is fno?":
-		//function here
+		eventresponses.FnoMessage(s, m)
 		break
 	case "invite link":
-		//function here
+		eventresponses.InviteLink(s, m)
 		break
-	case "invite mrs bot":
-		//function here
+	case "invite link mrs bot":
+		eventresponses.InviteLink(s, m)
 		break
 	case "moderator":
-		go eventresponses.ModeratorMessage(s, m)
+		eventresponses.ModeratorMessage(s, m)
 		break
-	case "msfs 2020 help":
-		//function here
+	case "msfs2020 help":
+		eventresponses.Msfs2020Message(s, m)
 		break
 	case "rules":
-		// function here
+		eventresponses.RulesMessage(s, m)
 		break
 	case "support":
 		//function here
 		break
 	case "tpc callsign":
-		go eventresponses.TpcCallsignMessage(s, m)
+		eventresponses.TpcCallsignMessage(s, m)
 		break
 	case "tpc livery":
-		go eventresponses.TpcLiveriesMessage(s, m)
+		eventresponses.TpcLiveriesMessage(s, m)
 		break
 	}
 
@@ -52,13 +52,13 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	} else if strings.Contains(strings.ToLower(m.Content), "what server") {
 		// function here
 	} else if strings.Contains(strings.ToLower(m.Content), "thanks tpc") {
-		go eventresponses.TpcThanksMessage(s, m)
+		eventresponses.TpcThanksMessage(s, m)
 	} else if strings.Contains(strings.ToLower(m.Content), "what is vatsim?") {
-		go eventresponses.WhatIsVatsimMessage(s, m)
+		eventresponses.WhatIsVatsimMessage(s, m)
 	}
 
 	if m.Type == 8 || m.Type == 9 || m.Type == 10 || m.Type == 11 {
-		go eventresponses.BoosterMessageContent(s, m)
+		eventresponses.BoosterMessageContent(s, m)
 	}
 
 	var Contest = config.GetChannelId(m.GuildID, "Screenshot Contest")

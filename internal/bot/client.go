@@ -18,7 +18,7 @@ func Session() (*discordgo.Session, error) {
 }
 
 func Run() {
-	log.Print("Starting discord-bot-v2")
+	log.Print("Starting discord-bot-v3")
 	session, err := Session()
 	if err != nil {
 		println(err.Error())
@@ -27,11 +27,12 @@ func Run() {
 
 	session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		go config.IntervalReloadConfigs()
-		handlers.HandleCLientReady(s)
+		go handlers.HandleCLientReady(s)
 	})
 
-	go session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
+	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		go handlers.MessageCreateHandler(s, m)
+		return
 	})
 
 	err = session.Open()
