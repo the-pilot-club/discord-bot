@@ -3,6 +3,8 @@ WORKDIR /go/src/github.com/the-pilot-club/tpc-discord-bot
 COPY go.mod ./
 COPY go.sum ./
 COPY cmd ./cmd
-COPY functions ./functions
+COPY event-responses ./event-responses
+COPY handlers ./handlers
 COPY internal ./internal
 RUN go build -o bin/bot ./cmd/main.go
+ENTRYPOINT ["bin/bot"]
