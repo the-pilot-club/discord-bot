@@ -184,7 +184,7 @@ func SupportMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		discordgo.ActionsRow{
 			Components: []discordgo.MessageComponent{
 				discordgo.Button{
-					URL:   "https://support.thepilotclub.org/open.php",
+					URL:   "discord://-/channels/830201397974663229/1234335597368316055/1234340341423931462",
 					Label: "The Pilot Club Support",
 					Style: discordgo.LinkButton,
 				},
@@ -193,7 +193,7 @@ func SupportMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	Message := &discordgo.MessageSend{
 		Components: components,
-		Content:    "To get support or submit feedback, click the button below! Thank you for being a valued member of The Pilot Club!!",
+		Content:    "To get support, click the button below! Thank you for being a valued member of The Pilot Club!!",
 		Reference:  m.Reference(),
 	}
 	s.ChannelMessageSendComplex(m.ChannelID, Message)
