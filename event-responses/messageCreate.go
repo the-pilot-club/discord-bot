@@ -2,8 +2,9 @@ package event_responses
 
 import (
 	"fmt"
-	"github.com/bwmarrin/discordgo"
 	"tpc-discord-bot/internal/config"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 func ModeratorMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -18,8 +19,8 @@ func WhatIsVatsimMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		"Air Traffic Control (ATC) is available in our communities throughout the world, operating as close as possible to the real-life procedures and utilizing real-life weather, airport and route data." +
 		"\n \nOn VATSIM you can join people on the other side of the planet to fly and control, with nothing more than a home computer! If you would like more information, please go to https://www.thepilotclub.org/resources#VATSIM"
 	s.ChannelMessageSendReply(m.ChannelID, Message, m.Reference())
-	return
 }
+
 func TpcLiveriesMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	components := []discordgo.MessageComponent{
 		discordgo.ActionsRow{
@@ -38,7 +39,6 @@ func TpcLiveriesMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		Reference:  m.Reference(),
 	}
 	s.ChannelMessageSendComplex(m.ChannelID, Message)
-	return
 }
 
 func TpcCallsignMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -75,7 +75,6 @@ func TpcCallsignMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		Reference:  m.Reference(),
 	}
 	s.ChannelMessageSendComplex(m.ChannelID, Message)
-	return
 }
 
 func TpcThanksMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -88,14 +87,12 @@ func TpcThanksMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		Description: "You're Welcome! Anytime!",
 	}
 	s.ChannelMessageSendEmbedReply(m.ChannelID, embed, m.Reference())
-	return
 }
 
 func BoosterMessageContent(s *discordgo.Session, m *discordgo.MessageCreate) {
 	var CrewChat = config.GetChannelId(m.GuildID, "Crew Chat")
 	message := fmt.Sprintf("<@%v> Thank you for boosting the club!", m.Author.ID)
 	s.ChannelMessageSend(CrewChat, message)
-	return
 }
 
 func BumpWarsMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -116,7 +113,6 @@ func BumpWarsMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		" It gives our community a chance to grow and allows you to be involved in the process. Have fun!"
 
 	s.ChannelMessageSendReply(m.ChannelID, message, m.Reference())
-	return
 }
 
 func FnoMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -137,12 +133,10 @@ func FnoMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		Reference:  m.Reference(),
 	}
 	s.ChannelMessageSendComplex(m.ChannelID, Message)
-	return
 }
 
 func InviteLink(s *discordgo.Session, m *discordgo.MessageCreate) {
 	s.ChannelMessageSendReply(m.ChannelID, "Please use this link when inviting somebody to the server: https://thepilotclub.org", m.Reference())
-	return
 }
 
 func Msfs2020Message(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -163,7 +157,6 @@ func Msfs2020Message(s *discordgo.Session, m *discordgo.MessageCreate) {
 		Reference:  m.Reference(),
 	}
 	s.ChannelMessageSendComplex(m.ChannelID, Message)
-	return
 }
 
 func RulesMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -184,5 +177,72 @@ func RulesMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 		Reference:  m.Reference(),
 	}
 	s.ChannelMessageSendComplex(m.ChannelID, Message)
-	return
+}
+
+func SupportMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	components := []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					URL:   "https://support.thepilotclub.org/open.php",
+					Label: "The Pilot Club Support",
+					Style: discordgo.LinkButton,
+				},
+			},
+		},
+	}
+	Message := &discordgo.MessageSend{
+		Components: components,
+		Content:    "To get support or submit feedback, click the button below! Thank you for being a valued member of The Pilot Club!!",
+		Reference:  m.Reference(),
+	}
+	s.ChannelMessageSendComplex(m.ChannelID, Message)
+}
+
+func WorldTourMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	components := []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					URL:   "https://discord.com/channels/830201397974663229/833198809701679124/848245312815497237",
+					Label: "Get the World Tour Role",
+					Style: discordgo.LinkButton,
+				},
+			},
+		},
+	}
+	Message := &discordgo.MessageSend{
+		Components: components,
+		Content:    "Want to join the World Tour Flight? Proceed to this message and click the World Tour Logo!",
+		Reference:  m.Reference(),
+	}
+	s.ChannelMessageSendComplex(m.ChannelID, Message)
+}
+
+func JoinVatsimMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	components := []discordgo.MessageComponent{
+		discordgo.ActionsRow{
+			Components: []discordgo.MessageComponent{
+				discordgo.Button{
+					URL:   "https://www.thepilotclub.org/resources#VATSIM",
+					Label: "Joining VATSIM",
+					Style: discordgo.LinkButton,
+				},
+			},
+		},
+	}
+	Message := &discordgo.MessageSend{
+		Components: components,
+		Content:    "To Join VATSIM you should go to this website and click register!",
+		Reference:  m.Reference(),
+	}
+	s.ChannelMessageSendComplex(m.ChannelID, Message)
+}
+
+func WhatServerMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
+	Message := "We do not use the default Microsoft Flight Simulator 2020 Multiplayer Server here in The Pilot Club. We use VATSIM for all of our group flights!\n \n" +
+		"VATSIM is the Virtual Air Traffic Simulation network, connecting people from around the world flying online or acting as virtual Air Traffic Controllers. " +
+		"\n \nThis completely free network allows aviation enthusiasts the ultimate experience. Air Traffic Control (ATC) is available in our communities throughout the world, operating as close as possible to the real-life procedures and utilizing real-life weather, airport and route data. " +
+		"\n \nOn VATSIM you can join people on the other side of the planet to fly and control, with nothing more than a home computer! If you would like more information, please go to https://vatsim.net"
+	s.ChannelMessageSendReply(m.ChannelID, Message, m.Reference())
 }

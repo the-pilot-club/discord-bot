@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"github.com/bwmarrin/discordgo"
 	"strings"
 	eventresponses "tpc-discord-bot/event-responses"
 	"tpc-discord-bot/internal/config"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -17,40 +18,43 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	switch strings.ToLower(m.Content) {
 	case "bump wars":
 		eventresponses.BumpWarsMessage(s, m)
-		break
+		return
 	case "what is fno?":
 		eventresponses.FnoMessage(s, m)
-		break
+		return
 	case "invite link":
 		eventresponses.InviteLink(s, m)
-		break
+		return
 	case "invite link mrs bot":
 		eventresponses.InviteLink(s, m)
-		break
+		return
 	case "moderator":
 		eventresponses.ModeratorMessage(s, m)
-		break
+		return
 	case "msfs2020 help":
 		eventresponses.Msfs2020Message(s, m)
-		break
+		return
 	case "rules":
 		eventresponses.RulesMessage(s, m)
-		break
+		return
 	case "support":
-		//function here
-		break
+		eventresponses.SupportMessage(s, m)
+		return
 	case "tpc callsign":
 		eventresponses.TpcCallsignMessage(s, m)
-		break
+		return
 	case "tpc livery":
 		eventresponses.TpcLiveriesMessage(s, m)
-		break
+		return
+	case "world tour":
+		eventresponses.WorldTourMessage(s, m)
+		return
 	}
 
 	if strings.Contains(strings.ToLower(m.Content), "join vatsim") {
-		// function here
+		eventresponses.JoinVatsimMessage(s, m)
 	} else if strings.Contains(strings.ToLower(m.Content), "what server") {
-		// function here
+		eventresponses.WhatServerMessage(s, m)
 	} else if strings.Contains(strings.ToLower(m.Content), "thanks tpc") {
 		eventresponses.TpcThanksMessage(s, m)
 	} else if strings.Contains(strings.ToLower(m.Content), "what is vatsim?") {
@@ -70,11 +74,10 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 				ToReact = true
 			}
 		}
-		if ToReact == true {
+		if ToReact {
 			emoji := config.GetEmojiId(m.GuildID, "TPC Reaction")
 			s.MessageReactionAdd(m.ChannelID, m.ID, emoji)
 		}
 		return
 	}
-	return
 }
