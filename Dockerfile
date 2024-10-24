@@ -1,4 +1,4 @@
-FROM golang:1.23.1-alpine3.20 AS build
+FROM golang:1.23.2-alpine AS build
 WORKDIR /go/src/github.com/the-pilot-club/tpc-discord-bot
 COPY go.mod ./
 COPY go.sum ./

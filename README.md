@@ -4,6 +4,8 @@
 
 This is v3 of The Pilot Club's discord bot built with discordgo.
 
+The configuration for this bot is hosted within another repository (will be released later). Development config map has been provided for developer convenience.  
+
 
 ## Development Requirements
 

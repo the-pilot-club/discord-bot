@@ -1,18 +1,6 @@
 id: 1148307481085358190
 name: Dev Server
 roles:
-  - id: role-id-here
-    name: Commuter Role
-  - id: role-id-here
-    name: Frequent Flier
-  - id: role-id-here
-    name: VIP
-  - id: role-id-here
-    name: Charters Pilots
-  - id: role-id-here
-    name: Charters Managers
-  - id: role-id-here
-    name: Flight Instructor
   - name: Moderator
     id: 1148307481391542288
 channels:
