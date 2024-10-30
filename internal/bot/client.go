@@ -1,12 +1,13 @@
 package bot
 
 import (
-	"github.com/bwmarrin/discordgo"
 	"log"
 	"os"
 	"os/signal"
 	"tpc-discord-bot/handlers"
 	"tpc-discord-bot/internal/config"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 func Session() (*discordgo.Session, error) {
@@ -25,15 +26,8 @@ func Run() {
 	}
 	session.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
 
-	session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
-		go config.IntervalReloadConfigs()
-		go handlers.HandleCLientReady(s)
-	})
-
-	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
-		go handlers.MessageCreateHandler(s, m)
-		return
-	})
+	// add all handlers to the session
+	AddHandlers(session)
 
 	err = session.Open()
 	if err != nil {
@@ -45,4 +39,30 @@ func Run() {
 	signal.Notify(stop, os.Interrupt)
 	log.Println("Press Ctrl+C to exit")
 	<-stop
+}
+
+// AddHandlers adds all the handlers to the session
+func AddHandlers(session *discordgo.Session) {
+
+	session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+		go config.IntervalReloadConfigs()
+		go handlers.HandleCLientReady(s)
+	})
+
+	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
+		go handlers.MessageCreateHandler(s, m)
+	})
+
+	session.AddHandler(func(s *discordgo.Session, m *discordgo.GuildScheduledEventCreate) {
+		go handlers.HandleScheduledEventCreate(s, m)
+	})
+
+	session.AddHandler(func(s *discordgo.Session, m *discordgo.GuildScheduledEventUpdate) {
+		go handlers.HandleScheduledEventUpdate(s, m)
+	})
+
+	session.AddHandler(func(s *discordgo.Session, m *discordgo.GuildScheduledEventDelete) {
+		go handlers.HandleScheduledEventDelete(s, m)
+	})
+
 }
