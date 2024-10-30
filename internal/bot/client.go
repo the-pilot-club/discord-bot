@@ -45,6 +45,14 @@ func Run() {
 		}
 		registeredGlobalCommands[i] = cmd
 	}
+	registeredGuildCommands := make([]*discordgo.ApplicationCommand, len(commands.GuildCommands))
+	for i, v := range commands.GuildCommands {
+		cmd, err := session.ApplicationCommandCreate(session.State.User.ID, *commands.GuildID, v)
+		if err != nil {
+			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
+		}
+		registeredGuildCommands[i] = cmd
+	}
 	defer session.Close()
 
 	stop := make(chan os.Signal, 1)
