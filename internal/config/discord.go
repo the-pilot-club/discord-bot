@@ -14,6 +14,7 @@ var DiscordToken = os.Getenv("BOT_TOKEN")
 var SentryDSN = os.Getenv("SENTRY_DSN")
 var Env = os.Getenv("GO_ENV")
 var ConfigPath = os.Getenv("CONFIG_PATH")
+var NinjaApiKey = os.Getenv("NINJA_API_KEY")
 
 type ServerConfig struct {
 	Id       string          `yaml:"id"`

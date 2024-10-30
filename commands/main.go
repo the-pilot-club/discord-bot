@@ -19,6 +19,19 @@ var (
 	GuildID        = flag.String("guild", genEnvGuild(), "Test guild ID. If not passed - bot registers commands globally")
 	GlobalCommands = []*discordgo.ApplicationCommand{
 		{
+			Name:        "airport",
+			Description: "Displays Informatinon about the selected airport",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "icao",
+					Description: "What is the ICAO of the Airport?",
+					Required:    true,
+					MaxLength:   4,
+				},
+			},
+		},
+		{
 			Name:        "ping",
 			Description: "Does something cool!",
 		},

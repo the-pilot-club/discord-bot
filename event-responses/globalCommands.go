@@ -3,6 +3,7 @@ package event_responses
 import (
 	"github.com/bwmarrin/discordgo"
 	"tpc-discord-bot/commands/fun"
+	"tpc-discord-bot/commands/util"
 )
 
 func GlobalCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -12,6 +13,9 @@ func GlobalCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 		"dad-joke": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			fun.HandleDadJokeCommand(s, i)
+		},
+		"airport": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			util.AirportCommand(s, i)
 		},
 	}
 
