@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"tpc-discord-bot/commands"
 	"tpc-discord-bot/handlers"
 	"tpc-discord-bot/internal/config"
 
@@ -19,6 +20,7 @@ func Session() (*discordgo.Session, error) {
 }
 
 func Run() {
+
 	log.Print("Starting discord-bot-v3")
 	session, err := Session()
 	if err != nil {
@@ -33,6 +35,16 @@ func Run() {
 	if err != nil {
 		println(err.Error())
 	}
+
+	log.Println("Adding commands...")
+	registeredGlobalCommands := make([]*discordgo.ApplicationCommand, len(commands.GlobalCommands))
+	for i, v := range commands.GlobalCommands {
+		cmd, err := session.ApplicationCommandCreate(session.State.User.ID, "", v)
+		if err != nil {
+			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
+		}
+		registeredGlobalCommands[i] = cmd
+	}
 	defer session.Close()
 
 	stop := make(chan os.Signal, 1)
@@ -42,27 +54,31 @@ func Run() {
 }
 
 // AddHandlers adds all the handlers to the session
-func AddHandlers(session *discordgo.Session) {
+func AddHandlers(s *discordgo.Session) {
 
-	session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		go config.IntervalReloadConfigs()
 		go handlers.HandleCLientReady(s)
 	})
 
-	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
+	s.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		go handlers.MessageCreateHandler(s, m)
 	})
 
-	session.AddHandler(func(s *discordgo.Session, m *discordgo.GuildScheduledEventCreate) {
+	s.AddHandler(func(s *discordgo.Session, m *discordgo.GuildScheduledEventCreate) {
 		go handlers.HandleScheduledEventCreate(s, m)
 	})
 
-	session.AddHandler(func(s *discordgo.Session, m *discordgo.GuildScheduledEventUpdate) {
+	s.AddHandler(func(s *discordgo.Session, m *discordgo.GuildScheduledEventUpdate) {
 		go handlers.HandleScheduledEventUpdate(s, m)
 	})
 
-	session.AddHandler(func(s *discordgo.Session, m *discordgo.GuildScheduledEventDelete) {
+	s.AddHandler(func(s *discordgo.Session, m *discordgo.GuildScheduledEventDelete) {
 		go handlers.HandleScheduledEventDelete(s, m)
+	})
+
+	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		go handlers.InteractionCreateHandler(s, i)
 	})
 
 }
