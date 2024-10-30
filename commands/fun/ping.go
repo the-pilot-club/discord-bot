@@ -9,6 +9,7 @@ func HandlePingCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: "Pong!",
+			Flags:   discordgo.MessageFlagsEphemeral,
 		},
 	})
 }
