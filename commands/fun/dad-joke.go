@@ -19,7 +19,6 @@ func HandleDadJokeCommand(s *discordgo.Session, i *discordgo.InteractionCreate) 
 		fmt.Println(err)
 		sentry.CaptureException(err)
 	}
-	fmt.Println(j)
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
