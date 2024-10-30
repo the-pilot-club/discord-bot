@@ -22,6 +22,10 @@ var (
 			Name:        "ping",
 			Description: "Does something cool!",
 		},
+		{
+			Name:        "dad-joke",
+			Description: "Tells you a dad joke!",
+		},
 	}
 	GuildCommands = []*discordgo.ApplicationCommand{
 		{
