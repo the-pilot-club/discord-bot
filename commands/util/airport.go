@@ -6,6 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/carlmjohnson/requests"
 	"github.com/getsentry/sentry-go"
+	"strings"
 	"tpc-discord-bot/internal/config"
 )
 
@@ -20,7 +21,7 @@ type Airport struct {
 }
 
 type Stations struct {
-	Data StationsData `json:"data"`
+	StationData []StationsData `json:"data"`
 }
 
 type StationsData struct {
@@ -57,35 +58,153 @@ func getAirportInfo(i *discordgo.InteractionCreate) ([]Airport, error) {
 		Header("X-Api-Key", config.NinjaApiKey).
 		ToJSON(&a).
 		Fetch(context.Background())
+
 	return a, err
 }
 
-func getStationData(i *discordgo.InteractionCreate) (Stations, error) {
+func getStationData(i *discordgo.InteractionCreate) ([]StationsData, error) {
 	var s Stations
 	options := i.ApplicationCommandData().Options
 
 	err := requests.
-		URL("https://my.vatsim.net/api/v2/aip").
-		Pathf("/airports/%v/stations", options[0].StringValue()).
+		URL("https://my.vatsim.net").
+		Pathf("/api/v2/aip/airports/%s/stations", options[0].StringValue()).
 		Accept("application/json").
 		UserAgent("TPCDiscordBotv3").
 		ToJSON(&s).
 		Fetch(context.Background())
-	fmt.Println(s)
-	return s, err
+
+	return s.StationData, err
+}
+
+func getFreq(s []StationsData) (*discordgo.MessageEmbedField, error) {
+
+	var freq string
+
+	for _, f := range s {
+		if f.Ctaf == true {
+			var ctaf = fmt.Sprintf("- %v (%v): **CTAF Frequency: Yes**\n  - %v\n", f.Name, f.Callsign, f.Frequency)
+			freq += ctaf
+		} else {
+			var nonCtaf = fmt.Sprintf("- %v (%v)\n  - %v\n", f.Name, f.Callsign, f.Frequency)
+			freq += nonCtaf
+		}
+	}
+
+	fi := &discordgo.MessageEmbedField{
+		Name:  "Frequencies",
+		Value: freq,
+	}
+
+	return fi, nil
 }
 
 func AirportCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	options := i.ApplicationCommandData().Options
 	weather := getWeather(i)
-	//airport, _ := getAirportInfo(i)
+	airport, err := getAirportInfo(i)
+	if err != nil || len(airport) == 0 {
+		msg := fmt.Sprintf("%v has no airport information provided. [SkyVector may be able to provide more information.](https://skyvector.com/api/airportSearch?query=%v)", strings.ToUpper(options[0].StringValue()), options[0].StringValue())
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: msg,
+			},
+		})
+		return
+	}
 	stations, _ := getStationData(i)
-	//fmt.Println(airport[0])
-	fmt.Println(stations)
 
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	des := fmt.Sprintf("Information about %s (Elevation: %s)", airport[0].Name, airport[0].Elevation)
+
+	freqs, ferr := getFreq(stations)
+
+	fmt.Println(ferr)
+
+	var Embed *discordgo.MessageEmbed
+
+	var IataF *discordgo.MessageEmbedField
+
+	if len(airport[0].Iata) > 0 {
+		IataF = &discordgo.MessageEmbedField{
+			Name:  "IATA",
+			Value: airport[0].Iata,
+		}
+	} else {
+		IataF = &discordgo.MessageEmbedField{
+			Name:  "IATA",
+			Value: "N/A",
+		}
+	}
+
+	if ferr == nil {
+		Embed = &discordgo.MessageEmbed{
+			Title:       "Airport",
+			Description: des,
+			Color:       3651327,
+			Fields: []*discordgo.MessageEmbedField{
+				{
+					Name:  "ICAO",
+					Value: airport[0].Icao,
+				},
+				IataF,
+				{
+					Name:  "Region",
+					Value: airport[0].Region,
+				},
+				{
+					Name:  "Charts",
+					Value: fmt.Sprintf("[View Charts Here](https://skyvector.com/api/airportSearch?query=%v)", options[0].StringValue()),
+				},
+				{
+					Name:  "METAR",
+					Value: weather,
+				},
+				freqs,
+			},
+		}
+	}
+	if ferr != nil {
+		Embed = &discordgo.MessageEmbed{
+			Title:       "Airport",
+			Description: des,
+			Color:       3651327,
+			Fields: []*discordgo.MessageEmbedField{
+				{
+					Name:  "ICAO",
+					Value: airport[0].Icao,
+				},
+				IataF,
+				{
+					Name:  "Region",
+					Value: airport[0].Region,
+				},
+				{
+					Name:  "Charts",
+					Value: fmt.Sprintf("[View Charts Here](https://skyvector.com/api/airportSearch?query=%v)", options[0].StringValue()),
+				},
+				{
+					Name:  "METAR",
+					Value: weather,
+				},
+				{
+					Name:  "Frequencies",
+					Value: "None Found on VATSIM",
+				},
+			},
+		}
+	}
+
+	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: weather,
+			Embeds: []*discordgo.MessageEmbed{
+				Embed,
+			},
 		},
 	})
+	if err != nil {
+		fmt.Println(err)
+	}
 }
