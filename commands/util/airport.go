@@ -7,7 +7,6 @@ import (
 	"github.com/carlmjohnson/requests"
 	"github.com/getsentry/sentry-go"
 	"strings"
-	"time"
 	"tpc-discord-bot/internal/config"
 )
 
@@ -167,7 +166,6 @@ func AirportCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Text:    "Made by TPC Dev Team",
 				IconURL: "https://static1.squarespace.com/static/614689d3918044012d2ac1b4/t/616ff36761fabc72642806e3/1634726781251/TPC_FullColor_TransparentBg_1280x1024_72dpi.png",
 			},
-			Timestamp: time.Now().String(),
 		}
 	}
 	if ferr != nil {
@@ -202,7 +200,6 @@ func AirportCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Text:    "Made by TPC Dev Team",
 				IconURL: "https://static1.squarespace.com/static/614689d3918044012d2ac1b4/t/616ff36761fabc72642806e3/1634726781251/TPC_FullColor_TransparentBg_1280x1024_72dpi.png",
 			},
-			Timestamp: time.Now().Format(time.RFC3339),
 		}
 	}
 
