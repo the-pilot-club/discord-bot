@@ -3,6 +3,9 @@ name: Dev Server
 roles:
   - name: Moderator
     id: 1148307481391542288
+    sync:
+      - name:
+        id:
 channels:
   - name: Git Channel
     id: 1148307485904601172

@@ -45,6 +45,10 @@ var (
 			Name:        "member-count",
 			Description: "Displays Number of Members in the Club",
 		},
+		{
+			Name:        "sync",
+			Description: "Sync your VATSIM Ratings for TPC!",
+		},
 	}
 )
 
