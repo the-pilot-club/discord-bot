@@ -49,6 +49,10 @@ var (
 			Name:        "sync",
 			Description: "Sync your VATSIM Ratings for TPC!",
 		},
+		{
+			Name:        "hours",
+			Description: "See how many hours you have on the network!",
+		},
 	}
 )
 
