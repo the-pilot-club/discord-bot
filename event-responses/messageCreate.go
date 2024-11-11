@@ -233,7 +233,7 @@ func JoinVatsimMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	Message := &discordgo.MessageSend{
 		Components: components,
-		Content:    "To Join VATSIM you should go to this website and click register!",
+		Content:    "To create a VATSIM account, you should go to this website and click register!",
 		Reference:  m.Reference(),
 	}
 	s.ChannelMessageSendComplex(m.ChannelID, Message)
