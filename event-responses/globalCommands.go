@@ -9,13 +9,16 @@ import (
 func GlobalCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var GlobalCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"ping": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			fun.HandlePingCommand(s, i)
+			go fun.HandlePingCommand(s, i)
 		},
 		"dad-joke": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			fun.HandleDadJokeCommand(s, i)
+			go fun.HandleDadJokeCommand(s, i)
 		},
 		"airport": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			util.AirportCommand(s, i)
+			go util.AirportCommand(s, i)
+		},
+		"metar": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go util.MetarCommand(s, i)
 		},
 	}
 

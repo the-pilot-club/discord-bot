@@ -119,8 +119,6 @@ func AirportCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	freqs, ferr := getFreq(stations)
 
-	fmt.Println(ferr)
-
 	var Embed *discordgo.MessageEmbed
 
 	var IataF *discordgo.MessageEmbedField

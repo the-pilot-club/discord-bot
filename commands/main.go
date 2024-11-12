@@ -39,6 +39,42 @@ var (
 			Name:        "dad-joke",
 			Description: "Tells you a dad joke!",
 		},
+		{
+			Name:        "hours",
+			Description: "See how many hours you have on the network!",
+		},
+		{
+			Name:        "metar",
+			Description: "Gives METAR for a Specific Airport",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "icao-code",
+					Description: "use an ICAO to get a METAR request",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "icao",
+							Description: "The ICAO of the Airport",
+							Required:    true,
+						},
+					},
+					Type: discordgo.ApplicationCommandOptionSubCommand,
+				},
+				{
+					Name:        "iata-code",
+					Description: "use an IATA to get a METAR request",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "iata",
+							Description: "The IATA of the Airport",
+							Required:    true,
+						},
+					},
+					Type: discordgo.ApplicationCommandOptionSubCommand,
+				},
+			},
+		},
 	}
 	GuildCommands = []*discordgo.ApplicationCommand{
 		{
@@ -48,10 +84,6 @@ var (
 		{
 			Name:        "sync",
 			Description: "Sync your VATSIM Ratings for TPC!",
-		},
-		{
-			Name:        "hours",
-			Description: "See how many hours you have on the network!",
 		},
 	}
 )
