@@ -98,15 +98,18 @@ func HoursCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	getRatingsHours(s, i)
 
 	pilotHours := discordgo.MessageEmbedField{
-		Name:   "Pilot Hours",
-		Value:  fmt.Sprintf("%v", HoursData.Pilot),
-		Inline: true,
+		Name:  "Pilot Hours",
+		Value: fmt.Sprintf("%v", HoursData.Pilot),
 	}
 
 	atcHours := discordgo.MessageEmbedField{
-		Name:   "ATC Hours",
-		Value:  fmt.Sprintf("%v", HoursData.ATC),
-		Inline: true,
+		Name:  "ATC Hours",
+		Value: fmt.Sprintf("%v", HoursData.ATC),
+	}
+
+	supHours := discordgo.MessageEmbedField{
+		Name:  "Supervisor / Administrator Hours",
+		Value: fmt.Sprintf("%v", HoursData.SUP+HoursData.ADM),
 	}
 
 	if HoursData.S1 != 0 {
@@ -123,6 +126,7 @@ func HoursCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		Fields: []*discordgo.MessageEmbedField{
 			&pilotHours,
 			&atcHours,
+			&supHours,
 		},
 		Footer: &discordgo.MessageEmbedFooter{
 			Text:    "Made by TPC Dev Team",
