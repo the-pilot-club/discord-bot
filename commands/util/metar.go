@@ -51,8 +51,7 @@ func getAirportInfoMetar(v string, s *discordgo.Session, i *discordgo.Interactio
 		ToJSON(&ICAO).
 		CheckStatus(200).
 		Fetch(context.Background())
-	fmt.Println(err)
-	if err != nil || requests.HasStatusErr(err, 400) {
+	if err != nil {
 		ierr := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
@@ -90,11 +89,17 @@ func MetarCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		code := options[0].Options
 		getAirportInfoMetar(code[0].StringValue(), s, i)
 
-		getWeatherMetar(ICAO[0].Icao, s, i)
-		if Weather == "" {
-			Weather = "Not Available"
+		if len(ICAO) != 0 {
+			getWeatherMetar(ICAO[0].Icao, s, i)
+			if Weather == "" {
+				Weather = "Not Available"
+			}
+			AirportCode = strings.ToUpper(ICAO[0].Icao)
+		} else {
+			AirportCode = strings.ToUpper(code[0].StringValue())
+			Weather = "Could not find airport."
 		}
-		AirportCode = strings.ToUpper(ICAO[0].Icao)
+
 	}
 
 	embed := &discordgo.MessageEmbed{
