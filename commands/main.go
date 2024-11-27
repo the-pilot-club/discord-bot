@@ -85,6 +85,10 @@ var (
 			Name:        "sync",
 			Description: "Sync your VATSIM Ratings for TPC!",
 		},
+		{
+			Name:        "leaderboard",
+			Description: "The link to find our leaderboard!",
+		},
 	}
 )
 

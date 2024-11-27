@@ -70,3 +70,5 @@ baseurl:
     link: https://flightcrew-beta.thepilotclub.org
   - name: Internal API
     link: https://api.thepilotclub.org
+  - name: Leaderboard
+    link: https://mee6.xyz/thepilotclub
