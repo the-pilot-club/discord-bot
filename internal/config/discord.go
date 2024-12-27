@@ -3,17 +3,25 @@ package config
 import (
 	"errors"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"log"
 	"os"
 	"time"
+
+	"gopkg.in/yaml.v3"
+
+	_ "github.com/joho/godotenv/autoload"
 )
-import _ "github.com/joho/godotenv/autoload"
 
 var DiscordToken = os.Getenv("BOT_TOKEN")
 var SentryDSN = os.Getenv("SENTRY_DSN")
 var Env = os.Getenv("GO_ENV")
 var ConfigPath = os.Getenv("CONFIG_PATH")
+var QuizBaseUrl = os.Getenv("QUIZ_BASE_URL")
+var QuizToken = os.Getenv("QUIZ_TOKEN")
+var GuildId = os.Getenv("GUILD_ID")
+var CommuterRoleId = os.Getenv("COMMUTER_ROLE_ID")
+var FfRoleId = os.Getenv("FF_ROLE_ID")
+var VipRoleId = os.Getenv("VIP_ROLE_ID")
 
 type ServerConfig struct {
 	Id       string          `yaml:"id"`

@@ -80,4 +80,6 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		return
 	}
+
+	HandleXpGive(s, m)
 }
