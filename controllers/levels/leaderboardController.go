@@ -124,12 +124,12 @@ func (c *LeaderboardController) GetRoleRewards() []RoleReward {
 		{
 			GuildID: config.GuildId,
 			RoleID:  config.FfRoleId,
-			Level:   4,
+			Level:   25,
 		},
 		{
 			GuildID: config.GuildId,
 			RoleID:  config.VipRoleId,
-			Level:   3,
+			Level:   35,
 		},
 	}
 }
