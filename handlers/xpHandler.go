@@ -7,6 +7,7 @@ import (
 	"time"
 
 	controllers "tpc-discord-bot/controllers/levels"
+	"tpc-discord-bot/internal/config"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -54,7 +55,7 @@ func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Find or create user
-	user, err := controller.FindUser(m.Author.ID)
+	user, err := controller.FindUser(m.Author.ID, m.GuildID)
 	if err != nil {
 		// Add user if not found
 		err = controller.AddUser(m.Author.ID, m.GuildID)
@@ -91,7 +92,7 @@ func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 			return
 		}
 
-		err = controller.UpdateUserLevel(m.Author.ID, newLevel, messageCount+1, 1, requiredXp)
+		err = controller.UpdateUserLevel(m.Author.ID, newLevel, messageCount+1, 1, requiredXp, m.GuildID)
 		if err != nil {
 			return
 		}
@@ -110,9 +111,11 @@ func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 		totalXp+int(xpToAssign),
 		requiredXp,
 		time.Now().Add(time.Minute).UnixMilli(),
+		m.GuildID,
 	)
 }
 
+// calculate user level and required xp
 func calculateUserLevel(currentLevel, currentXp int) (level, requiredXp int) {
 	xpForNextLevel := int(math.Pow(float64(currentLevel+1), 2) * 100)
 
@@ -123,10 +126,11 @@ func calculateUserLevel(currentLevel, currentXp int) (level, requiredXp int) {
 	return currentLevel, xpForNextLevel
 }
 
+// see if user has reached a new level and assign role rewards
 func checkRoleRewards(s *discordgo.Session, m *discordgo.MessageCreate,
 	controller *controllers.LeaderboardController, newLevel int) {
 
-	roleRewards := controller.GetRoleRewards()
+	roleRewards := config.GetRoleRewards(m.GuildID)
 
 	for _, reward := range roleRewards {
 		if reward.Level == newLevel {
@@ -135,7 +139,7 @@ func checkRoleRewards(s *discordgo.Session, m *discordgo.MessageCreate,
 				continue
 			}
 
-			controller.UpdateUserRole(m.Author.ID, reward.RoleID)
+			controller.UpdateUserRole(m.Author.ID, reward.RoleID, m.GuildID)
 		}
 	}
 }

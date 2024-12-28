@@ -25,15 +25,9 @@ type UserCreate struct {
 	MessageLastSent int64  `json:"messageLastSent"`
 }
 
-type RoleReward struct {
-	GuildID string `json:"guildId"`
-	Level   int    `json:"level"`
-	RoleID  string `json:"roleId"`
-}
-
-func (c *LeaderboardController) FindUser(id string) (map[string]interface{}, error) {
-	url := fmt.Sprintf("%s/discord/leaderboard/users/find/%s", config.QuizBaseUrl, id)
-	resp, err := c.sendRequest("GET", url, nil)
+func (c *LeaderboardController) FindUser(id string, guildId string) (map[string]interface{}, error) {
+	url := fmt.Sprintf("%s/discord/leaderboard/users/find/%s", config.GetApiBaseUrl(guildId), id)
+	resp, err := c.sendRequest("GET", url, nil, guildId)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +38,7 @@ func (c *LeaderboardController) FindUser(id string) (map[string]interface{}, err
 }
 
 func (c *LeaderboardController) AddUser(userId, guildId string) error {
-	url := fmt.Sprintf("%s/discord/leaderboard/users/create", config.QuizBaseUrl)
+	url := fmt.Sprintf("%s/discord/leaderboard/users/create", config.GetApiBaseUrl(guildId))
 	data := UserCreate{
 		GuildID:         guildId,
 		UserID:          userId,
@@ -57,19 +51,19 @@ func (c *LeaderboardController) AddUser(userId, guildId string) error {
 		NoXp:            false,
 		MessageLastSent: time.Now().UnixMilli(),
 	}
-	_, err := c.sendRequest("POST", url, data)
+	_, err := c.sendRequest("POST", url, data, guildId)
 	return err
 }
 
-func (c *LeaderboardController) UpdateUserRole(id, roleId string) error {
-	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.QuizBaseUrl, id)
+func (c *LeaderboardController) UpdateUserRole(id, roleId string, guildId string) error {
+	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.GetApiBaseUrl(guildId), id)
 	data := map[string]string{"roleId": roleId}
-	_, err := c.sendRequest("PATCH", url, data)
+	_, err := c.sendRequest("PATCH", url, data, guildId)
 	return err
 }
 
-func (c *LeaderboardController) UpdateUserLevel(id string, level, messageCount, xp, levelXp int) error {
-	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.QuizBaseUrl, id)
+func (c *LeaderboardController) UpdateUserLevel(id string, level, messageCount, xp, levelXp int, guildId string) error {
+	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.GetApiBaseUrl(guildId), id)
 	data := map[string]interface{}{
 		"level":        level,
 		"userId":       id,
@@ -77,12 +71,12 @@ func (c *LeaderboardController) UpdateUserLevel(id string, level, messageCount, 
 		"xp":           xp,
 		"levelXp":      levelXp,
 	}
-	_, err := c.sendRequest("PATCH", url, data)
+	_, err := c.sendRequest("PATCH", url, data, guildId)
 	return err
 }
 
-func (c *LeaderboardController) UpdateUserPoints(id string, level, messageCount, xp, totalXp, levelXp int, messageLastSent int64) error {
-	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.QuizBaseUrl, id)
+func (c *LeaderboardController) UpdateUserPoints(id string, level, messageCount, xp, totalXp, levelXp int, messageLastSent int64, guildId string) error {
+	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.GetApiBaseUrl(guildId), id)
 	data := map[string]interface{}{
 		"level":           level,
 		"messageCount":    messageCount,
@@ -91,51 +85,31 @@ func (c *LeaderboardController) UpdateUserPoints(id string, level, messageCount,
 		"levelXp":         levelXp,
 		"messageLastSent": messageLastSent,
 	}
-	_, err := c.sendRequest("PATCH", url, data)
+	_, err := c.sendRequest("PATCH", url, data, guildId)
 	return err
 }
 
-func (c *LeaderboardController) AddXp(id string, xp, totalXp, level, levelXp int) error {
-	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.QuizBaseUrl, id)
+func (c *LeaderboardController) AddXp(id string, xp, totalXp, level, levelXp int, guildId string) error {
+	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.GetApiBaseUrl(guildId), id)
 	data := map[string]interface{}{
 		"level":   level,
 		"xp":      xp,
 		"totalXp": totalXp,
 		"levelXp": levelXp,
 	}
-	_, err := c.sendRequest("PATCH", url, data)
+	_, err := c.sendRequest("PATCH", url, data, guildId)
 	return err
 }
 
-func (c *LeaderboardController) NoUserXp(id string, xp bool) error {
-	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.QuizBaseUrl, id)
+func (c *LeaderboardController) NoUserXp(id string, xp bool, guildId string) error {
+	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.GetApiBaseUrl(guildId), id)
 	data := map[string]bool{"noXp": xp}
-	_, err := c.sendRequest("PATCH", url, data)
+	_, err := c.sendRequest("PATCH", url, data, guildId)
 	return err
-}
-
-func (c *LeaderboardController) GetRoleRewards() []RoleReward {
-	return []RoleReward{
-		{
-			GuildID: config.GuildId,
-			RoleID:  config.CommuterRoleId,
-			Level:   15,
-		},
-		{
-			GuildID: config.GuildId,
-			RoleID:  config.FfRoleId,
-			Level:   25,
-		},
-		{
-			GuildID: config.GuildId,
-			RoleID:  config.VipRoleId,
-			Level:   35,
-		},
-	}
 }
 
 // Helper function to handle HTTP requests
-func (c *LeaderboardController) sendRequest(method, url string, body interface{}) (*http.Response, error) {
+func (c *LeaderboardController) sendRequest(method, url string, body interface{}, guildId string) (*http.Response, error) {
 	var bodyReader io.Reader
 	if body != nil {
 		jsonData, err := json.Marshal(body)
@@ -154,7 +128,7 @@ func (c *LeaderboardController) sendRequest(method, url string, body interface{}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", "TPCDiscordBot")
-	req.Header.Set("X-API-Key", config.QuizToken)
+	req.Header.Set("X-API-Key", config.GetInternalApiKey(guildId))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

@@ -16,20 +16,15 @@ var DiscordToken = os.Getenv("BOT_TOKEN")
 var SentryDSN = os.Getenv("SENTRY_DSN")
 var Env = os.Getenv("GO_ENV")
 var ConfigPath = os.Getenv("CONFIG_PATH")
-var QuizBaseUrl = os.Getenv("QUIZ_BASE_URL")
-var QuizToken = os.Getenv("QUIZ_TOKEN")
-var GuildId = os.Getenv("GUILD_ID")
-var CommuterRoleId = os.Getenv("COMMUTER_ROLE_ID")
-var FfRoleId = os.Getenv("FF_ROLE_ID")
-var VipRoleId = os.Getenv("VIP_ROLE_ID")
 
 type ServerConfig struct {
-	Id       string          `yaml:"id"`
-	Name     string          `yaml:"name"`
-	Roles    []RoleConfig    `yaml:"roles"`
-	Channels []ChannelConfig `yaml:"channels"`
-	Emojis   []EmojiConfig   `yaml:"emojis"`
-	BaseUrl  []BaseUrls      `yaml:"baseurl"`
+	Id          string          `yaml:"id"`
+	Name        string          `yaml:"name"`
+	Roles       []RoleConfig    `yaml:"roles"`
+	Channels    []ChannelConfig `yaml:"channels"`
+	Emojis      []EmojiConfig   `yaml:"emojis"`
+	BaseUrl     []BaseUrls      `yaml:"baseurl"`
+	RoleRewards []RoleReward    `yaml:"role_rewards"`
 }
 
 type RoleConfig struct {
@@ -50,6 +45,13 @@ type EmojiConfig struct {
 type BaseUrls struct {
 	Name string `yaml:"name"`
 	Url  string `yaml:"url"`
+	Key  string `yaml:"key"`
+}
+
+type RoleReward struct {
+	RoleName string `yaml:"role_name"`
+	RoleID   string `yaml:"role_id"`
+	Level    int    `yaml:"level"`
 }
 
 var Cfg ServerConfig
@@ -116,34 +118,64 @@ func GetServerConfig(id string) *ServerConfig {
 }
 
 func GetRoleId(id string, name string) string {
-	Cfg, _ := configs[id]
+	cfg := configs[id]
 	var RoleId string
-	for i := 0; i < len(Cfg.Roles); i++ {
-		if Cfg.Roles[i].Name == name {
-			RoleId = Cfg.Roles[i].Id
+	for i := 0; i < len(cfg.Roles); i++ {
+		if cfg.Roles[i].Name == name {
+			RoleId = cfg.Roles[i].Id
 		}
 	}
 	return RoleId
 }
 
 func GetChannelId(id string, name string) string {
-	Cfg, _ := configs[id]
+	cfg := configs[id]
 	var ChannelId string
-	for i := 0; i < len(Cfg.Channels); i++ {
-		if Cfg.Channels[i].Name == name {
-			ChannelId = Cfg.Channels[i].Id
+	for i := 0; i < len(cfg.Channels); i++ {
+		if cfg.Channels[i].Name == name {
+			ChannelId = cfg.Channels[i].Id
 		}
 	}
 	return ChannelId
 }
 
 func GetEmojiId(id string, name string) string {
-	Cfg, _ := configs[id]
+	cfg := configs[id]
 	var EmojiId string
-	for i := 0; i < len(Cfg.Emojis); i++ {
-		if Cfg.Emojis[i].Name == name {
-			EmojiId = Cfg.Emojis[i].Id
+	for i := 0; i < len(cfg.Emojis); i++ {
+		if cfg.Emojis[i].Name == name {
+			EmojiId = cfg.Emojis[i].Id
 		}
 	}
 	return EmojiId
+}
+
+func GetRoleRewards(id string) []RoleReward {
+	cfg, exists := configs[id]
+	if !exists {
+		return nil
+	}
+	return cfg.RoleRewards
+}
+
+func GetApiBaseUrl(id string) string {
+	cfg := configs[id]
+	var BaseUrl string
+	for i := 0; i < len(cfg.BaseUrl); i++ {
+		if cfg.BaseUrl[i].Name == "Internal API" {
+			BaseUrl = cfg.BaseUrl[i].Url
+		}
+	}
+	return BaseUrl
+}
+
+func GetInternalApiKey(id string) string {
+	cfg := configs[id]
+	var ApiKey string
+	for i := 0; i < len(cfg.BaseUrl); i++ {
+		if cfg.BaseUrl[i].Name == "Internal API" {
+			ApiKey = cfg.BaseUrl[i].Key
+		}
+	}
+	return ApiKey
 }
