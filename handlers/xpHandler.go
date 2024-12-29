@@ -3,7 +3,6 @@ package handlers
 import (
 	"math"
 	"math/rand"
-	"strings"
 	"time"
 
 	controllers "tpc-discord-bot/controllers/levels"
@@ -25,17 +24,6 @@ func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 	controller := &controllers.LeaderboardController{}
 	levelingConfig := LevelingConfig{XpRate: 1.0}
 
-	// List of XP-enabled channels
-	xpChannels := []string{
-		"crew-chat", "fly-with-me", "Event Comms", "Flight Voice 1",
-		"Flight Voice 2", "Shared Cockpit", "Magneto Lounge", "1 on 1",
-		"general-aviation-ops", "streams-and-videos", "screenshots",
-		"Charters Comms", "community-help-forum", "pilot-training-chat",
-		"charters-chat", "explorer-missions", "irl-pilots", "atc-lounge",
-		"company-perks", "early-adopters", "airliner-and-bizjet-ops",
-		"rotary-ops", "your-setups",
-	}
-
 	// Get channel
 	channel, err := s.Channel(m.ChannelID)
 	if err != nil {
@@ -43,13 +31,7 @@ func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Check if channel is in XP channels list
-	channelAllowed := false
-	for _, xpChannel := range xpChannels {
-		if strings.EqualFold(channel.Name, xpChannel) {
-			channelAllowed = true
-			break
-		}
-	}
+	channelAllowed := config.ValidXpChannel(m.GuildID, channel.Name)
 	if !channelAllowed {
 		return
 	}

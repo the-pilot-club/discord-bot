@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -25,6 +26,7 @@ type ServerConfig struct {
 	Emojis      []EmojiConfig   `yaml:"emojis"`
 	BaseUrl     []BaseUrls      `yaml:"baseurl"`
 	RoleRewards []RoleReward    `yaml:"role_rewards"`
+	XpChannels  []XpChannel     `yaml:"xp_channels"`
 }
 
 type RoleConfig struct {
@@ -52,6 +54,10 @@ type RoleReward struct {
 	RoleName string `yaml:"role_name"`
 	RoleID   string `yaml:"role_id"`
 	Level    int    `yaml:"level"`
+}
+
+type XpChannel struct {
+	Name string `yaml:"name"`
 }
 
 var Cfg ServerConfig
@@ -178,4 +184,19 @@ func GetInternalApiKey(id string) string {
 		}
 	}
 	return ApiKey
+}
+
+func ValidXpChannel(id string, channelName string) bool {
+	cfg := configs[id]
+
+	if cfg.XpChannels == nil {
+		return false
+	}
+
+	for i := 0; i < len(cfg.XpChannels); i++ {
+		if strings.EqualFold(cfg.XpChannels[i].Name, channelName) {
+			return true
+		}
+	}
+	return false
 }
