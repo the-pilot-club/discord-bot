@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"time"
 	"tpc-discord-bot/internal/config"
@@ -39,12 +40,13 @@ func (c *LeaderboardController) FindUser(id string, guildId string) (map[string]
 
 func (c *LeaderboardController) AddUser(userId, guildId string) error {
 	url := fmt.Sprintf("%s/discord/leaderboard/users/create", config.GetApiBaseUrl(guildId))
+	xpPerMessage := rand.Intn(5) + 7
 	data := UserCreate{
 		GuildID:         guildId,
 		UserID:          userId,
 		MessageCount:    1,
-		Xp:              0,
-		TotalXp:         0,
+		Xp:              xpPerMessage,
+		TotalXp:         xpPerMessage,
 		LevelXp:         0,
 		Level:           0,
 		Rank:            0,
