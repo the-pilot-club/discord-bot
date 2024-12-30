@@ -1,45 +1,60 @@
 package bot
 
 import (
-	"github.com/bwmarrin/discordgo"
 	"log"
 	"os"
 	"os/signal"
 	"tpc-discord-bot/handlers"
 	"tpc-discord-bot/internal/config"
+
+	"github.com/bwmarrin/discordgo"
 )
 
-func Session() (*discordgo.Session, error) {
-	discord, err := discordgo.New("Bot " + config.DiscordToken)
+type Client struct {
+	Session *discordgo.Session
+}
+
+func NewClient(token string) *Client {
+	session, err := discordgo.New("Bot " + token)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	return discord, nil
+
+	return &Client{
+		Session: session,
+	}
+}
+
+func (c *Client) Start() {
+	err := c.Session.Open()
+	if err != nil {
+		panic(err)
+	}
+	// Block forever
+	select {}
 }
 
 func Run() {
 	log.Print("Starting discord-bot-v3")
-	session, err := Session()
-	if err != nil {
-		println(err.Error())
-	}
-	session.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
+	client := NewClient(config.DiscordToken)
 
-	session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+	client.Session.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
+
+	client.Session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		go config.IntervalReloadConfigs()
 		go handlers.HandleCLientReady(s)
 	})
 
-	session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
+	client.Session.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
 		go handlers.MessageCreateHandler(s, m)
 		return
 	})
 
-	err = session.Open()
+	err := client.Session.Open()
 	if err != nil {
 		println(err.Error())
 	}
-	defer session.Close()
+	defer client.Session.Close()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
