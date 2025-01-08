@@ -17,11 +17,14 @@ var DiscordToken = os.Getenv("BOT_TOKEN")
 var SentryDSN = os.Getenv("SENTRY_DSN")
 var Env = os.Getenv("GO_ENV")
 var ConfigPath = os.Getenv("CONFIG_PATH")
+var NinjaApiKey = os.Getenv("NINJA_API_KEY")
 
 type ServerConfig struct {
 	Id          string          `yaml:"id"`
 	Name        string          `yaml:"name"`
 	Roles       []RoleConfig    `yaml:"roles"`
+	RatingRoles []RatingRolesConfig `yaml:"ratings-roles"`
+	PilotRoles  []RatingRolesConfig `yaml:"pilot-rating-roles"`
 	Channels    []ChannelConfig `yaml:"channels"`
 	Emojis      []EmojiConfig   `yaml:"emojis"`
 	BaseUrl     []BaseUrls      `yaml:"baseurl"`
@@ -32,6 +35,12 @@ type ServerConfig struct {
 type RoleConfig struct {
 	Name string `yaml:"name"`
 	Id   string `yaml:"id"`
+}
+
+type RatingRolesConfig struct {
+	Name        string `yaml:"name"`
+	RatingValue int    `yaml:"rating-value"`
+	Id          string `yaml:"id"`
 }
 
 type ChannelConfig struct {
@@ -199,4 +208,14 @@ func ValidXpChannel(id string, channelName string) bool {
 		}
 	}
 	return false
+}
+
+func GetRatingsRoles(id string) []RatingRolesConfig {
+	Cfg, _ := configs[id]
+	return Cfg.RatingRoles
+}
+
+func GetPilotRatingsRoles(id string) []RatingRolesConfig {
+	Cfg, _ := configs[id]
+	return Cfg.PilotRoles
 }
