@@ -11,39 +11,27 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-type Client struct {
-	Session *discordgo.Session
-}
-
-func NewClient(token string) *Client {
-	session, err := discordgo.New("Bot " + token)
+func Session() (*discordgo.Session, error) {
+	discord, err := discordgo.New("Bot " + config.DiscordToken)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-
-	return &Client{
-		Session: session,
-	}
-}
-
-func (c *Client) Start() {
-	err := c.Session.Open()
-	if err != nil {
-		panic(err)
-	}
-	// Block forever
-	select {}
+	return discord, nil
 }
 
 func Run() {
 
 	log.Print("Starting discord-bot-v3")
-	client := NewClient(config.DiscordToken)
+	session, err := Session()
+	if err != nil {
+		println(err.Error())
+	}
+	session.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
 
 	// add all handlers to the session
 	AddHandlers(session)
 
-	err := client.Session.Open()
+	err = session.Open()
 	if err != nil {
 		println(err.Error())
 	}
