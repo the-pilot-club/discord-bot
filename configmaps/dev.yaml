@@ -67,8 +67,43 @@ emojis:
     id: :giveaway:1225560451279097926
 baseurl:
   - name: FCP
-    link: https://flightcrew-beta.thepilotclub.org
+    url: https://flightcrew-beta.thepilotclub.org
   - name: Internal API
-    link: https://api.thepilotclub.org
+    url: http://127.0.0.1:3000
+    key: 16065729-30ef-472e-9b12-6a0d139dfc84
   - name: Leaderboard
-    link: https://mee6.xyz/thepilotclub
+    url: https://mee6.xyz/thepilotclub
+role_rewards:
+  - role_name: Frequent Flyer
+    role_id: 1148307481290866804
+    level: 2
+  - role_name: Commuter
+    role_id: 1148307481290866803
+    level: 1
+  - role_name: VIP
+    role_id: 1148307481290866805
+    level: 3
+xp_channels:
+  - name: crew-chat
+  - name: fly-with-me
+  - name: Event Comms
+  - name: Flight Voice 1
+  - name: Flight Voice 2
+  - name : Shared Cockpit
+  - name: Magneto Lounge
+  - name : 1 on 1
+  - name: general-aviation-ops
+  - name: streams-and-videos
+  - name: screenshots
+  - name: Charters Comms
+  - name: community-help-forum
+  - name: pilot-training-chat
+  - name: charters-chat
+  - name: explorer-missions
+  - name: irl-pilots
+  - name: atc-lounge
+  - name: company-perks
+  - name: early-adopters
+  - name: airliner-and-bizjet-ops
+  - name: rotary-ops
+  - name: your-setups

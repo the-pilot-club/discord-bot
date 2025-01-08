@@ -40,7 +40,7 @@ func (c *LeaderboardController) FindUser(id string, guildId string) (map[string]
 
 func (c *LeaderboardController) AddUser(userId, guildId string) error {
 	url := fmt.Sprintf("%s/discord/leaderboard/users/create", config.GetApiBaseUrl(guildId))
-	xpPerMessage := rand.Intn(5) + 7
+	xpPerMessage := rand.Intn(15) + 10
 	data := UserCreate{
 		GuildID:         guildId,
 		UserID:          userId,

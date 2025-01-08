@@ -20,16 +20,16 @@ var ConfigPath = os.Getenv("CONFIG_PATH")
 var NinjaApiKey = os.Getenv("NINJA_API_KEY")
 
 type ServerConfig struct {
-	Id          string          `yaml:"id"`
-	Name        string          `yaml:"name"`
-	Roles       []RoleConfig    `yaml:"roles"`
+	Id          string              `yaml:"id"`
+	Name        string              `yaml:"name"`
+	Roles       []RoleConfig        `yaml:"roles"`
 	RatingRoles []RatingRolesConfig `yaml:"ratings-roles"`
 	PilotRoles  []RatingRolesConfig `yaml:"pilot-rating-roles"`
-	Channels    []ChannelConfig `yaml:"channels"`
-	Emojis      []EmojiConfig   `yaml:"emojis"`
-	BaseUrl     []BaseUrls      `yaml:"baseurl"`
-	RoleRewards []RoleReward    `yaml:"role_rewards"`
-	XpChannels  []XpChannel     `yaml:"xp_channels"`
+	Channels    []ChannelConfig     `yaml:"channels"`
+	Emojis      []EmojiConfig       `yaml:"emojis"`
+	BaseUrl     []BaseUrls          `yaml:"baseurl"`
+	RoleRewards []RoleReward        `yaml:"role_rewards"`
+	XpChannels  []XpChannel         `yaml:"xp_channels"`
 }
 
 type RoleConfig struct {
@@ -185,14 +185,7 @@ func GetApiBaseUrl(id string) string {
 }
 
 func GetInternalApiKey(id string) string {
-	cfg := configs[id]
-	var ApiKey string
-	for i := 0; i < len(cfg.BaseUrl); i++ {
-		if cfg.BaseUrl[i].Name == "Internal API" {
-			ApiKey = cfg.BaseUrl[i].Key
-		}
-	}
-	return ApiKey
+	return os.Getenv("INTERNAL_API_KEY")
 }
 
 func ValidXpChannel(id string, channelName string) bool {

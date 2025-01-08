@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"fmt"
+	"github.com/getsentry/sentry-go"
 	"math"
 	"math/rand"
+	"strconv"
 	"time"
 
 	controllers "tpc-discord-bot/controllers/levels"
@@ -52,8 +55,13 @@ func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	//Add a check to see if member has sent a message in the last minute
+	if processLastMessageSent(user["messageLastSent"].(string)) {
+		return
+	}
+
 	// Calculate XP
-	xpPerMessage := rand.Intn(5) + 7 // Random between 7-12
+	xpPerMessage := rand.Intn(15) + 10 // Random between 7-12
 	xpToAssign := float64(xpPerMessage) * levelingConfig.XpRate
 
 	// Get current user stats
@@ -67,9 +75,8 @@ func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if newLevel > currentLevel {
 		// Level up
-		_, err = s.ChannelMessageSend(m.ChannelID,
-			"Congrats <@"+m.Author.ID+">, you just advanced to TPC **level "+
-				string(rune(newLevel))+"**!")
+		content := fmt.Sprintf("Congrats <@%v>, you just advanced to TPC **level %v **!", m.Author.ID, newLevel)
+		_, err = s.ChannelMessageSend(m.ChannelID, content)
 		if err != nil {
 			return
 		}
@@ -95,6 +102,21 @@ func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 		time.Now().Add(time.Minute).UnixMilli(),
 		m.GuildID,
 	)
+}
+
+func processLastMessageSent(m string) bool {
+	i, err := strconv.ParseInt(m, 10, 64)
+
+	if err != nil {
+		sentry.CaptureException(err)
+	}
+
+	if i > time.Now().UnixMilli() {
+
+		return true
+	}
+	return false
+
 }
 
 // calculate user level and required xp
