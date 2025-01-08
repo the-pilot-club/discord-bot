@@ -69,8 +69,7 @@ baseurl:
   - name: FCP
     url: https://flightcrew-beta.thepilotclub.org
   - name: Internal API
-    url: http://127.0.0.1:3000
-    key: 16065729-30ef-472e-9b12-6a0d139dfc84
+    url: https://api-beta.thepilotclub.org
   - name: Leaderboard
     url: https://mee6.xyz/thepilotclub
 role_rewards:
