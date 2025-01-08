@@ -17,7 +17,7 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"hours": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			vatsim.HoursCommand(s, i)
 		},
-		"leaderbaord": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		"leaderboard": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			general.HandleLeaderboardCommand(s, i)
 		},
 	}
