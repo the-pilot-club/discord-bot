@@ -134,7 +134,7 @@ func HoursCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	}
 
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Flags: discordgo.MessageFlagsEphemeral,
@@ -143,5 +143,9 @@ func HoursCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		},
 	})
+	if err != nil {
+		sentry.CaptureException(err)
+		return
+	}
 
 }

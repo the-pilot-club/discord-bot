@@ -105,12 +105,16 @@ func AirportCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	airport, err := getAirportInfo(i)
 	if err != nil || len(airport) == 0 {
 		msg := fmt.Sprintf("%v has no airport information provided. [SkyVector may be able to provide more information.](https://skyvector.com/api/airportSearch?query=%v)", strings.ToUpper(options[0].StringValue()), options[0].StringValue())
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: msg,
 			},
 		})
+		if err != nil {
+			sentry.CaptureException(err)
+			return
+		}
 		return
 	}
 	stations, _ := getStationData(i)
@@ -210,6 +214,7 @@ func AirportCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if err != nil {
+		sentry.CaptureException(err)
 		fmt.Println(err)
 	}
 }

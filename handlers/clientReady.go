@@ -7,7 +7,7 @@ import (
 )
 
 func HandleCLientReady(s *discordgo.Session) {
-	s.UpdateGameStatus(0, "Microsoft Flight Simulator 2020")
+	s.UpdateGameStatus(0, "Microsoft Flight Simulator 2024")
 	log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
 	guilds := s.State.Guilds
 	for _, guild := range guilds {

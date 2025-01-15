@@ -158,7 +158,7 @@ func SyncCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	}
 
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{
@@ -166,4 +166,8 @@ func SyncCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		},
 	})
+	if err != nil {
+		sentry.CaptureException(err)
+		return
+	}
 }

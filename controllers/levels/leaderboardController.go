@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/getsentry/sentry-go"
 	"io"
 	"math/rand"
 	"net/http"
@@ -30,6 +31,7 @@ func (c *LeaderboardController) FindUser(id string, guildId string) (map[string]
 	url := fmt.Sprintf("%s/discord/leaderboard/users/find/%s", config.GetApiBaseUrl(guildId), id)
 	resp, err := c.sendRequest("GET", url, nil, guildId)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 

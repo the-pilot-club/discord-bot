@@ -19,10 +19,14 @@ func HandleDadJokeCommand(s *discordgo.Session, i *discordgo.InteractionCreate) 
 		fmt.Println(err)
 		sentry.CaptureException(err)
 	}
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: j,
 		},
 	})
+	if err != nil {
+		sentry.CaptureException(err)
+		return
+	}
 }

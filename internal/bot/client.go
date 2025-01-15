@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"github.com/getsentry/sentry-go"
 	"log"
 	"os"
 	"os/signal"
@@ -14,6 +15,7 @@ import (
 func Session() (*discordgo.Session, error) {
 	discord, err := discordgo.New("Bot " + config.DiscordToken)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 	return discord, nil
@@ -24,6 +26,7 @@ func Run() {
 	log.Print("Starting discord-bot-v3")
 	session, err := Session()
 	if err != nil {
+		sentry.CaptureException(err)
 		println(err.Error())
 	}
 	session.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
@@ -33,6 +36,7 @@ func Run() {
 
 	err = session.Open()
 	if err != nil {
+		sentry.CaptureException(err)
 		println(err.Error())
 	}
 

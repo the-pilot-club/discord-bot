@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"github.com/getsentry/sentry-go"
 	"log"
 	"os"
 	"strings"
@@ -74,6 +75,7 @@ var Cfg ServerConfig
 func LoadAllServerConfigOrPanic(configPath string) map[string]ServerConfig {
 	cfgs, err := LoadAllServerConfig(configPath)
 	if err != nil {
+		sentry.CaptureException(err)
 		log.Printf(err.Error())
 	}
 	return cfgs
@@ -83,12 +85,14 @@ func LoadAllServerConfig(configPath string) (map[string]ServerConfig, error) {
 	cfgs := make(map[string]ServerConfig, 0)
 	files, err := os.ReadDir(configPath)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, errors.New("failed to load server configs")
 	}
 	for _, f := range files {
 		if !f.IsDir() {
 			cfg, err := LoadServerConfig(fmt.Sprintf("%s/%s", configPath, f.Name()))
 			if err != nil {
+				sentry.CaptureException(err)
 				log.Printf(err.Error())
 				return nil, nil
 			}
@@ -101,11 +105,13 @@ func LoadAllServerConfig(configPath string) (map[string]ServerConfig, error) {
 func LoadServerConfig(configPath string) (*ServerConfig, error) {
 	data, err := os.ReadFile(configPath)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 	var cfg ServerConfig
 	err = yaml.Unmarshal(data, &cfg)
 	if err != nil {
+		sentry.CaptureException(err)
 		return nil, err
 	}
 	// TODO: Validate that roles aren't duplicated

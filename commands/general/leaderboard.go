@@ -2,6 +2,7 @@ package general
 
 import (
 	"github.com/bwmarrin/discordgo"
+	"github.com/getsentry/sentry-go"
 )
 
 func HandleLeaderboardCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -27,5 +28,9 @@ func HandleLeaderboardCommand(s *discordgo.Session, i *discordgo.InteractionCrea
 	}
 
 	// Send the response
-	s.InteractionRespond(i.Interaction, response)
+	err := s.InteractionRespond(i.Interaction, response)
+	if err != nil {
+		sentry.CaptureException(err)
+		return
+	}
 }
