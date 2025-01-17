@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/getsentry/sentry-go"
 	"math"
 	"math/rand"
 	"strconv"
 	"time"
+
+	"github.com/getsentry/sentry-go"
 
 	controllers "tpc-discord-bot/controllers/levels"
 	"tpc-discord-bot/internal/config"
@@ -21,6 +22,11 @@ type LevelingConfig struct {
 func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Skip if message is from bot or not in guild
 	if m.Author.Bot || m.GuildID == "" {
+		return
+	}
+
+	// Skip if message is from Serge
+	if m.Author.ID == "524567291128709140" {
 		return
 	}
 
