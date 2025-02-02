@@ -40,7 +40,7 @@ func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Check if channel is in XP channels list
-	channelAllowed := config.ValidXpChannel(m.GuildID, channel.Name)
+	channelAllowed := config.ValidXpChannel(m.GuildID, channel)
 	if !channelAllowed {
 		return
 	}

@@ -3,11 +3,13 @@ package config
 import (
 	"errors"
 	"fmt"
-	"github.com/getsentry/sentry-go"
 	"log"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/getsentry/sentry-go"
 
 	"gopkg.in/yaml.v3"
 
@@ -30,7 +32,6 @@ type ServerConfig struct {
 	Emojis      []EmojiConfig       `yaml:"emojis"`
 	BaseUrl     []BaseUrls          `yaml:"baseurl"`
 	RoleRewards []RoleReward        `yaml:"role_rewards"`
-	XpChannels  []XpChannel         `yaml:"xp_channels"`
 }
 
 type RoleConfig struct {
@@ -45,8 +46,9 @@ type RatingRolesConfig struct {
 }
 
 type ChannelConfig struct {
-	Name string `yaml:"name"`
-	Id   string `yaml:"id"`
+	Name        string               `yaml:"name"`
+	Id          string               `yaml:"id"`
+	Permissions []ChannelPermissions `yaml:"permissions"`
 }
 
 type EmojiConfig struct {
@@ -66,8 +68,9 @@ type RoleReward struct {
 	Level    int    `yaml:"level"`
 }
 
-type XpChannel struct {
-	Name string `yaml:"name"`
+type ChannelPermissions struct {
+	Name  string `yaml:"name"`
+	Value string `yaml:"value"`
 }
 
 var Cfg ServerConfig
@@ -194,19 +197,41 @@ func GetInternalApiKey(id string) string {
 	return os.Getenv("INTERNAL_API_KEY")
 }
 
-func ValidXpChannel(id string, channelName string) bool {
+// checks if the channel has the XP permission
+func ValidXpChannel(id string, channel *discordgo.Channel) bool {
+	channelName := channel.Name
 	cfg := configs[id]
 
-	if cfg.XpChannels == nil {
+	if cfg.Channels == nil {
 		return false
 	}
-
-	for i := 0; i < len(cfg.XpChannels); i++ {
-		if strings.EqualFold(cfg.XpChannels[i].Name, channelName) {
-			return true
+	// Find the channel
+	for i := 0; i < len(cfg.Channels); i++ {
+		if strings.EqualFold(cfg.Channels[i].Name, channelName) {
+			// Check the permission
+			return GetBooleanPermissionValue(GetPermissionValue(cfg.Channels[i], "xp"))
 		}
 	}
-	return false
+	return false // return false either way - should we log this?
+}
+
+// Returns the permission value as a boolean based on what is passed in
+// if the value is mispelled or not found it will return false
+func GetBooleanPermissionValue(value string) bool {
+	return strings.EqualFold(value, "true")
+}
+
+// Returns the permission value as a string
+// All permission values are strings - this allows for greater flexibility -
+// and handling of typos in the config (i.e. tuer or flsae admit it we have all done it)
+// or additions of numerical values for a permission in the future
+func GetPermissionValue(channel ChannelConfig, permissionName string) string {
+	for i := 0; i < len(channel.Permissions); i++ {
+		if strings.EqualFold(channel.Permissions[i].Name, permissionName) {
+			return channel.Permissions[i].Value
+		}
+	}
+	return "" // empty string if not found
 }
 
 func GetRatingsRoles(id string) []RatingRolesConfig {
