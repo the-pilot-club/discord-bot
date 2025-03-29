@@ -1,9 +1,10 @@
 package event_responses
 
 import (
-	"github.com/bwmarrin/discordgo"
 	"tpc-discord-bot/commands/general"
 	"tpc-discord-bot/commands/vatsim"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -19,6 +20,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 		"leaderboard": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			general.HandleLeaderboardCommand(s, i)
+		},
+		"givexp": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			general.HandleGiveXpCommand(s, i)
 		},
 	}
 	if h, ok := GuildCommandHandler[i.ApplicationCommandData().Name]; ok {

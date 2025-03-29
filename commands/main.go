@@ -2,8 +2,9 @@ package commands
 
 import (
 	"flag"
-	"github.com/bwmarrin/discordgo"
 	"tpc-discord-bot/internal/config"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 func genEnvGuild() string {
@@ -88,6 +89,24 @@ var (
 		{
 			Name:        "leaderboard",
 			Description: "The link to find our leaderboard!",
+		},
+		{
+			Name:        "givexp",
+			Description: "Give XP to a user",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Name:        "user",
+					Description: "The user to give XP to",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Name:        "amount",
+					Description: "Amount of XP to give as a whole number - no partial gimmies here!",
+					Required:    true,
+				},
+			},
 		},
 	}
 )
