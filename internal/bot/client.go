@@ -35,6 +35,9 @@ func Run() {
 		return
 	})
 
+	session.AddHandler(handlers.OnGuildMemberAdd)
+	session.AddHandler(handlers.OnGuildMemberRemove)
+
 	err = session.Open()
 	if err != nil {
 		println(err.Error())
