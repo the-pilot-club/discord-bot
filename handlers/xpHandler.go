@@ -21,7 +21,7 @@ type LevelingConfig struct {
 
 func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Skip if message is from bot or not in guild
-	if m.Author.Bot || m.GuildID == "" {
+	if m.Author.Bot || m.GuildID == "" || !config.GetXpGiveEnabled(m.GuildID) {
 		return
 	}
 

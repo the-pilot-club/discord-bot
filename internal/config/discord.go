@@ -23,15 +23,16 @@ var ConfigPath = os.Getenv("CONFIG_PATH")
 var NinjaApiKey = os.Getenv("NINJA_API_KEY")
 
 type ServerConfig struct {
-	Id          string              `yaml:"id"`
-	Name        string              `yaml:"name"`
-	Roles       []RoleConfig        `yaml:"roles"`
-	RatingRoles []RatingRolesConfig `yaml:"ratings-roles"`
-	PilotRoles  []RatingRolesConfig `yaml:"pilot-rating-roles"`
-	Channels    []ChannelConfig     `yaml:"channels"`
-	Emojis      []EmojiConfig       `yaml:"emojis"`
-	BaseUrl     []BaseUrls          `yaml:"baseurl"`
-	RoleRewards []RoleReward        `yaml:"role_rewards"`
+	Id            string              `yaml:"id"`
+	Name          string              `yaml:"name"`
+	XpGiveEnabled bool                `yaml:"xpgive-enabled"`
+	Roles         []RoleConfig        `yaml:"roles"`
+	RatingRoles   []RatingRolesConfig `yaml:"ratings-roles"`
+	PilotRoles    []RatingRolesConfig `yaml:"pilot-rating-roles"`
+	Channels      []ChannelConfig     `yaml:"channels"`
+	Emojis        []EmojiConfig       `yaml:"emojis"`
+	BaseUrl       []BaseUrls          `yaml:"baseurl"`
+	RoleRewards   []RoleReward        `yaml:"role_rewards"`
 }
 
 type RoleConfig struct {
@@ -74,6 +75,11 @@ type ChannelPermissions struct {
 }
 
 var Cfg ServerConfig
+
+func GetXpGiveEnabled(id string) bool {
+	cfg := configs[id]
+	return cfg.XpGiveEnabled
+}
 
 func LoadAllServerConfigOrPanic(configPath string) map[string]ServerConfig {
 	cfgs, err := LoadAllServerConfig(configPath)
