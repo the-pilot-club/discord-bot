@@ -234,6 +234,7 @@ func JoinVatsimMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 			},
 		},
 	}
+
 	Message := &discordgo.MessageSend{
 		Components: components,
 		Content:    "To join VATSIM and for VATSIM resources, please visit the link below!",

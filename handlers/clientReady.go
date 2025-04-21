@@ -7,14 +7,11 @@ import (
 )
 
 func HandleCLientReady(s *discordgo.Session) {
-	var Id string
-	if config.Env == "dev" {
-		Id = "1148307481085358190"
-	} else {
-		Id = "830201397974663229"
-	}
-	cnl := config.GetChannelId(Id, "Git Channel")
-	s.UpdateGameStatus(0, "Microsoft Flight Simulator 2020")
+	s.UpdateGameStatus(0, "Microsoft Flight Simulator 2024")
 	log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
-	s.ChannelMessageSend(cnl, "https://tenor.com/view/b-25-pbj-1j-pbj-commmemorative-air-force-caf-socal-gif-2902325729065148155")
+	guilds := s.State.Guilds
+	for _, guild := range guilds {
+		cnl := config.GetChannelId(guild.ID, "Git Channel")
+		s.ChannelMessageSend(cnl, "https://tenor.com/view/b-25-pbj-1j-pbj-commmemorative-air-force-caf-socal-gif-2902325729065148155")
+	}
 }
