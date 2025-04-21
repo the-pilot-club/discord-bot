@@ -194,7 +194,7 @@ func GetApiBaseUrl(id string) string {
 	var BaseUrl string
 	for i := 0; i < len(cfg.BaseUrl); i++ {
 		if cfg.BaseUrl[i].Name == "Internal API" {
-			BaseUrl = cfg.BaseUrl[i].Url
+			BaseUrl = cfg.BaseUrl[i].Link
 		}
 	}
 	return BaseUrl
@@ -249,6 +249,8 @@ func GetRatingsRoles(id string) []RatingRolesConfig {
 func GetPilotRatingsRoles(id string) []RatingRolesConfig {
 	Cfg, _ := configs[id]
 	return Cfg.PilotRoles
+}
+
 // helper func to get the baseurl based on api type and environment
 func GetBaseURL(guildID string, name string) string {
 	cfg := GetServerConfig(guildID)
