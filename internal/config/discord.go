@@ -21,6 +21,7 @@ var SentryDSN = os.Getenv("SENTRY_DSN")
 var Env = os.Getenv("GO_ENV")
 var ConfigPath = os.Getenv("CONFIG_PATH")
 var NinjaApiKey = os.Getenv("NINJA_API_KEY")
+var FCPToken = os.Getenv("FCP_TOKEN")
 
 type ServerConfig struct {
 	Id            string              `yaml:"id"`
@@ -59,7 +60,7 @@ type EmojiConfig struct {
 
 type BaseUrls struct {
 	Name string `yaml:"name"`
-	Url  string `yaml:"url"`
+	Link string `yaml:"link"`
 	Key  string `yaml:"key"`
 }
 
@@ -248,4 +249,20 @@ func GetRatingsRoles(id string) []RatingRolesConfig {
 func GetPilotRatingsRoles(id string) []RatingRolesConfig {
 	Cfg, _ := configs[id]
 	return Cfg.PilotRoles
+// helper func to get the baseurl based on api type and environment
+func GetBaseURL(guildID string, name string) string {
+	cfg := GetServerConfig(guildID)
+	if cfg == nil {
+		log.Printf("no config found for guild %s", guildID)
+		return ""
+	}
+
+	for _, base := range cfg.BaseUrl {
+		if base.Name == name {
+			return base.Link
+		}
+	}
+
+	log.Printf("no base URL named %s found for guild %s", name, guildID)
+	return ""
 }

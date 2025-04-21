@@ -34,6 +34,9 @@ func Run() {
 	// add all handlers to the session
 	AddHandlers(session)
 
+	session.AddHandler(handlers.OnGuildMemberAdd)
+	session.AddHandler(handlers.OnGuildMemberRemove)
+
 	err = session.Open()
 	if err != nil {
 		sentry.CaptureException(err)
