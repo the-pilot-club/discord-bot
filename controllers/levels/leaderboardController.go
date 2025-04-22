@@ -28,7 +28,7 @@ type UserCreate struct {
 }
 
 func (c *LeaderboardController) FindUser(id string, guildId string) (map[string]interface{}, error) {
-	url := fmt.Sprintf("%s/discord/leaderboard/users/find/%s", config.GetApiBaseUrl(guildId), id)
+	url := fmt.Sprintf("%s/discord/leaderboard/users/find/%s", config.GetBaseUrl(guildId, "Internal API"), id)
 	resp, err := c.sendRequest("GET", url, nil, guildId)
 	if err != nil {
 		sentry.CaptureException(err)
@@ -41,7 +41,7 @@ func (c *LeaderboardController) FindUser(id string, guildId string) (map[string]
 }
 
 func (c *LeaderboardController) AddUser(userId, guildId string) error {
-	url := fmt.Sprintf("%s/discord/leaderboard/users/create", config.GetApiBaseUrl(guildId))
+	url := fmt.Sprintf("%s/discord/leaderboard/users/create", config.GetBaseUrl(guildId, "Internal API"))
 	xpPerMessage := rand.Intn(15) + 10
 	data := UserCreate{
 		GuildID:         guildId,
@@ -60,14 +60,14 @@ func (c *LeaderboardController) AddUser(userId, guildId string) error {
 }
 
 func (c *LeaderboardController) UpdateUserRole(id, roleId string, guildId string) error {
-	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.GetApiBaseUrl(guildId), id)
+	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.GetBaseUrl(guildId, "Internal API"), id)
 	data := map[string]string{"roleId": roleId}
 	_, err := c.sendRequest("PATCH", url, data, guildId)
 	return err
 }
 
 func (c *LeaderboardController) UpdateUserLevel(id string, level, messageCount, xp, levelXp int, guildId string) error {
-	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.GetApiBaseUrl(guildId), id)
+	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.GetBaseUrl(guildId, "Internal API"), id)
 	data := map[string]interface{}{
 		"level":        level,
 		"userId":       id,
@@ -80,7 +80,7 @@ func (c *LeaderboardController) UpdateUserLevel(id string, level, messageCount, 
 }
 
 func (c *LeaderboardController) UpdateUserPoints(id string, level, messageCount, xp, totalXp, levelXp int, messageLastSent int64, guildId string) error {
-	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.GetApiBaseUrl(guildId), id)
+	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.GetBaseUrl(guildId, "Internal API"), id)
 	data := map[string]interface{}{
 		"level":           level,
 		"messageCount":    messageCount,
@@ -94,7 +94,7 @@ func (c *LeaderboardController) UpdateUserPoints(id string, level, messageCount,
 }
 
 func (c *LeaderboardController) AddXp(id string, xp, totalXp, level, levelXp int, guildId string) error {
-	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.GetApiBaseUrl(guildId), id)
+	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.GetBaseUrl(guildId, "Internal API"), id)
 	data := map[string]interface{}{
 		"level":   level,
 		"xp":      xp,
@@ -106,7 +106,7 @@ func (c *LeaderboardController) AddXp(id string, xp, totalXp, level, levelXp int
 }
 
 func (c *LeaderboardController) NoUserXp(id string, xp bool, guildId string) error {
-	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.GetApiBaseUrl(guildId), id)
+	url := fmt.Sprintf("%s/discord/leaderboard/users/%s", config.GetBaseUrl(guildId, "Internal API"), id)
 	data := map[string]bool{"noXp": xp}
 	_, err := c.sendRequest("PATCH", url, data, guildId)
 	return err

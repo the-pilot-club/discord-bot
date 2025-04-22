@@ -189,11 +189,11 @@ func GetRoleRewards(id string) []RoleReward {
 	return cfg.RoleRewards
 }
 
-func GetApiBaseUrl(id string) string {
+func GetBaseUrl(id string, name string) string {
 	cfg := configs[id]
 	var BaseUrl string
 	for i := 0; i < len(cfg.BaseUrl); i++ {
-		if cfg.BaseUrl[i].Name == "Internal API" {
+		if cfg.BaseUrl[i].Name == name {
 			BaseUrl = cfg.BaseUrl[i].Link
 		}
 	}
@@ -249,22 +249,4 @@ func GetRatingsRoles(id string) []RatingRolesConfig {
 func GetPilotRatingsRoles(id string) []RatingRolesConfig {
 	Cfg, _ := configs[id]
 	return Cfg.PilotRoles
-}
-
-// helper func to get the baseurl based on api type and environment
-func GetBaseURL(guildID string, name string) string {
-	cfg := GetServerConfig(guildID)
-	if cfg == nil {
-		log.Printf("no config found for guild %s", guildID)
-		return ""
-	}
-
-	for _, base := range cfg.BaseUrl {
-		if base.Name == name {
-			return base.Link
-		}
-	}
-
-	log.Printf("no base URL named %s found for guild %s", name, guildID)
-	return ""
 }
