@@ -11,7 +11,7 @@ import (
 
 // add a user to FCP
 func AddUser(discordUserID string, guildID string) error {
-	baseURL := config.GetBaseURL(guildID, "FCP")
+	baseURL := config.GetBaseUrl(guildID, "FCP")
 	if baseURL == "" {
 		err := fmt.Errorf("FCP base URL not found for guild %s", guildID)
 		sentry.CaptureException(err)
@@ -63,7 +63,7 @@ func AddUser(discordUserID string, guildID string) error {
 
 // remove a user from FCP
 func RemoveUser(discordUserID string, guildID string) error {
-	baseURL := config.GetBaseURL(guildID, "FCP")
+	baseURL := config.GetBaseUrl(guildID, "FCP")
 	if baseURL == "" {
 		err := fmt.Errorf("FCP base URL not found for guild %s", guildID)
 		sentry.CaptureException(err)
