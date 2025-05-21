@@ -2,6 +2,7 @@ package event_responses
 
 import (
 	"tpc-discord-bot/commands/general"
+	"tpc-discord-bot/commands/giveaway"
 	"tpc-discord-bot/commands/vatsim"
 
 	"github.com/bwmarrin/discordgo"
@@ -23,6 +24,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 		"givexp": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			general.HandleGiveXpCommand(s, i)
+		},
+		"giveaway": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			giveaway.GiveawayMain(s, i)
 		},
 	}
 	if h, ok := GuildCommandHandler[i.ApplicationCommandData().Name]; ok {
