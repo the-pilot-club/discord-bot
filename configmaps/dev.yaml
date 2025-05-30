@@ -7,6 +7,16 @@ roles:
     id: 1148307481227964444
   - name: Giveaway
     id: 1148307481227964436
+  - name: VIP
+    id: 1148307481290866805
+  - name: Frequent Flyer
+    id: 1148307481290866804
+  - name: Commuter
+    id: 1148307481290866803
+  - name: Early Adopters
+    id: 1148307481290866807
+  - name: Charters Top Gun
+    id: 1148307481328623738
 ratings-roles:
   - name: S1
     rating-value: 2

@@ -83,6 +83,10 @@ var (
 			Description: "Picks a random member with the Giveaway Role!",
 		},
 		{
+			Name:        "perks-giveaway",
+			Description: "Picks a random member with the Company Perks Role(s)!",
+		},
+		{
 			Name:        "member-count",
 			Description: "Displays Number of Members in the Club",
 		},

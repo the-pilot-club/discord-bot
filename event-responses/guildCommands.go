@@ -28,6 +28,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"giveaway": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			giveaway.GiveawayMain(s, i)
 		},
+		"perks-giveaway": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			giveaway.PekrsGiveaway(s, i)
+		},
 	}
 	if h, ok := GuildCommandHandler[i.ApplicationCommandData().Name]; ok {
 		h(s, i)
