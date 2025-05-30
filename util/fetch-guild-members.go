@@ -3,17 +3,12 @@ package util
 import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/getsentry/sentry-go"
-	"time"
 )
-
-var GMC *discordgo.GuildMembersChunk
-
-func processGMChunk(s *discordgo.Session, mc *discordgo.GuildMembersChunk) {
-	GMC = mc
-}
 
 func FetchAllMembers(s *discordgo.Session, guildId string) []*discordgo.Member {
 
+	data := make(chan *discordgo.GuildMembersChunk)
+	var completedMC *discordgo.GuildMembersChunk
 	var members []*discordgo.Member
 	err := s.RequestGuildMembers(guildId, "", 0, "", false)
 	if err != nil {
@@ -21,11 +16,15 @@ func FetchAllMembers(s *discordgo.Session, guildId string) []*discordgo.Member {
 		panic(err)
 	}
 
-	s.AddHandlerOnce(processGMChunk)
+	s.AddHandlerOnce(func(s *discordgo.Session, mc *discordgo.GuildMembersChunk) {
+		completedMC = mc
+		data <- completedMC
+		close(data)
+	})
 
-	time.Sleep(500 * time.Millisecond)
+	finshedData := <-data
 
-	for _, m := range GMC.Members {
+	for _, m := range finshedData.Members {
 		members = append(members, m)
 	}
 

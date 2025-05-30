@@ -5,6 +5,8 @@ roles:
     id: 1148307481391542288
   - name: ATC
     id: 1148307481227964444
+  - name: Giveaway
+    id: 1148307481227964436
 ratings-roles:
   - name: S1
     rating-value: 2
