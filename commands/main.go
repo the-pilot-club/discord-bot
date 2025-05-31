@@ -87,6 +87,10 @@ var (
 			Description: "Picks a random member with the Company Perks Role(s)!",
 		},
 		{
+			Name:        "server-commands",
+			Description: "The link to get a list of server commands!",
+		},
+		{
 			Name:        "member-count",
 			Description: "Displays Number of Members in the Club",
 		},
