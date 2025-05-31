@@ -91,6 +91,10 @@ var (
 			Description: "The link to get a list of server commands!",
 		},
 		{
+			Name:        "training-request",
+			Description: "Use this command if you would like to request training!",
+		},
+		{
 			Name:        "member-count",
 			Description: "Displays Number of Members in the Club",
 		},

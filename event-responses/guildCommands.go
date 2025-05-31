@@ -3,6 +3,7 @@ package event_responses
 import (
 	"tpc-discord-bot/commands/general"
 	"tpc-discord-bot/commands/giveaway"
+	"tpc-discord-bot/commands/training"
 	"tpc-discord-bot/commands/vatsim"
 
 	"github.com/bwmarrin/discordgo"
@@ -33,6 +34,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 		"server-commands": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			general.ServerCommands(s, i)
+		},
+		"training-request": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			training.TrainingRequest(s, i)
 		},
 	}
 	if h, ok := GuildCommandHandler[i.ApplicationCommandData().Name]; ok {

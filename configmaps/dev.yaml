@@ -74,6 +74,8 @@ channels:
     id: 1148307483002155098
   - name: Crew Chat
     id: 1148307482557554763
+  - name: Training Request
+    id: 1148307483828428933
 emojis:
   - name: TPC Reaction
     id: :giveaway:1225560451279097926
