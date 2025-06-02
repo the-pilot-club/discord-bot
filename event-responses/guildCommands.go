@@ -1,6 +1,7 @@
 package event_responses
 
 import (
+	"tpc-discord-bot/commands/admin"
 	"tpc-discord-bot/commands/general"
 	"tpc-discord-bot/commands/giveaway"
 	"tpc-discord-bot/commands/training"
@@ -34,6 +35,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 		"server-commands": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			general.ServerCommands(s, i)
+		},
+		"sop-post": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			admin.SOPCommand(s, i)
 		},
 		"training-request": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			training.TrainingRequest(s, i)

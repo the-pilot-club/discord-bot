@@ -83,6 +83,10 @@ var (
 			Description: "Picks a random member with the Giveaway Role!",
 		},
 		{
+			Name:        "sop-post",
+			Description: "Allows admin to update SOP and other text in the about and SOP channel.",
+		},
+		{
 			Name:        "perks-giveaway",
 			Description: "Picks a random member with the Company Perks Role(s)!",
 		},
