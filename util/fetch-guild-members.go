@@ -6,7 +6,6 @@ import (
 )
 
 func FetchAllMembers(s *discordgo.Session, guildId string) []*discordgo.Member {
-
 	data := make(chan *discordgo.GuildMembersChunk)
 	var completedMC *discordgo.GuildMembersChunk
 	var members []*discordgo.Member

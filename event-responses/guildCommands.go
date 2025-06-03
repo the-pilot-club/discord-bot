@@ -36,6 +36,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"perks-giveaway": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			giveaway.PekrsGiveaway(s, i)
 		},
+		"reset-giveaway": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			giveaway.ResetGiveaway(s, i)
+		},
 		"server-commands": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			general.ServerCommands(s, i)
 		},

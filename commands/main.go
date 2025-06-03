@@ -22,7 +22,7 @@ var (
 	GlobalCommands       = []*discordgo.ApplicationCommand{
 		{
 			Name:        "airport",
-			Description: "Displays Informatinon about the selected airport",
+			Description: "Displays Information about the selected airport",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
@@ -94,6 +94,10 @@ var (
 			Name:                     "perks-giveaway",
 			Description:              "Picks a random member with the Company Perks Role(s)!",
 			DefaultMemberPermissions: &AdminPerms,
+		},
+		{
+			Name:        "reset-giveaway",
+			Description: "Removes the giveaway roles from the users who have it",
 		},
 		{
 			Name:        "get-online-members",

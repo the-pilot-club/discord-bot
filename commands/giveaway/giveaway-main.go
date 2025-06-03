@@ -11,7 +11,6 @@ import (
 )
 
 func GiveawayMain(s *discordgo.Session, i *discordgo.InteractionCreate) {
-
 	mem := util.FetchAllMembers(s, i.GuildID)
 
 	var roledMembers []*discordgo.Member
@@ -82,5 +81,4 @@ func GiveawayMain(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		sentry.CaptureException(err)
 		panic(err)
 	}
-
 }
