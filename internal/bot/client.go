@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"tpc-discord-bot/commands"
 	"tpc-discord-bot/handlers"
 	"tpc-discord-bot/internal/config"
+	"tpc-discord-bot/util"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -43,23 +43,8 @@ func Run() {
 		println(err.Error())
 	}
 
-	log.Println("Adding commands...")
-	registeredGlobalCommands := make([]*discordgo.ApplicationCommand, len(commands.GlobalCommands))
-	for i, v := range commands.GlobalCommands {
-		cmd, err := session.ApplicationCommandCreate(session.State.User.ID, "", v)
-		if err != nil {
-			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
-		}
-		registeredGlobalCommands[i] = cmd
-	}
-	registeredGuildCommands := make([]*discordgo.ApplicationCommand, len(commands.GuildCommands))
-	for i, v := range commands.GuildCommands {
-		cmd, err := session.ApplicationCommandCreate(session.State.User.ID, *commands.GuildID, v)
-		if err != nil {
-			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
-		}
-		registeredGuildCommands[i] = cmd
-	}
+	util.HandleApplicationCommandUpdates(session)
+
 	defer session.Close()
 
 	stop := make(chan os.Signal, 1)

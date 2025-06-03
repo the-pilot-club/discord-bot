@@ -2,9 +2,8 @@ package commands
 
 import (
 	"flag"
-	"tpc-discord-bot/internal/config"
-
 	"github.com/bwmarrin/discordgo"
+	"tpc-discord-bot/internal/config"
 )
 
 func genEnvGuild() string {
@@ -84,6 +83,7 @@ var (
 			Name:                     "giveaway",
 			Description:              "Picks a random member with the Giveaway Role!",
 			DefaultMemberPermissions: &AdminPerms,
+			Version:                  "Dep",
 		},
 		{
 			Name:                     "sop-post",
@@ -94,6 +94,10 @@ var (
 			Name:                     "perks-giveaway",
 			Description:              "Picks a random member with the Company Perks Role(s)!",
 			DefaultMemberPermissions: &AdminPerms,
+		},
+		{
+			Name:        "get-online-members",
+			Description: "Gets the members who are online",
 		},
 		{
 			Name:        "server-commands",

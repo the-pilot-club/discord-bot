@@ -24,6 +24,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"leaderboard": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			general.HandleLeaderboardCommand(s, i)
 		},
+		"get-online-members": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			vatsim.GetOnlineMembers(s, i)
+		},
 		"givexp": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			general.HandleGiveXpCommand(s, i)
 		},
