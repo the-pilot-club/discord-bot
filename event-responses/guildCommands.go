@@ -36,6 +36,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"perks-giveaway": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			giveaway.PekrsGiveaway(s, i)
 		},
+		"next-flight": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			general.NextFlight(s, i)
+		},
 		"reset-giveaway": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			giveaway.ResetGiveaway(s, i)
 		},

@@ -86,6 +86,10 @@ var (
 			Version:                  "Dep",
 		},
 		{
+			Name:        "next-flight",
+			Description: "The link to find out our next flight!",
+		},
+		{
 			Name:                     "sop-post",
 			Description:              "Allows admin to update SOP and other text in the about and SOP channel.",
 			DefaultMemberPermissions: &AdminPerms,
