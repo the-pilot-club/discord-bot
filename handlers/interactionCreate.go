@@ -14,7 +14,6 @@ func InteractionCreateHandler(s *discordgo.Session, i *discordgo.InteractionCrea
 	}
 	if i.Type == discordgo.InteractionMessageComponent {
 		eventresponses.HandleButtonSubmit(s, i)
-
 	}
 	if i.Type == discordgo.InteractionApplicationCommand {
 		eventresponses.GuildCommands(s, i)

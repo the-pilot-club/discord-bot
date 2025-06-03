@@ -17,8 +17,10 @@ func genEnvGuild() string {
 }
 
 var (
-	GuildID        = flag.String("guild", genEnvGuild(), "Test guild ID. If not passed - bot registers commands globally")
-	GlobalCommands = []*discordgo.ApplicationCommand{
+	AdminPerms     int64 = discordgo.PermissionAdministrator
+	StaffPerms     int64 = discordgo.PermissionMentionEveryone
+	GuildID              = flag.String("guild", genEnvGuild(), "Test guild ID. If not passed - bot registers commands globally")
+	GlobalCommands       = []*discordgo.ApplicationCommand{
 		{
 			Name:        "airport",
 			Description: "Displays Informatinon about the selected airport",
@@ -79,16 +81,19 @@ var (
 	}
 	GuildCommands = []*discordgo.ApplicationCommand{
 		{
-			Name:        "giveaway",
-			Description: "Picks a random member with the Giveaway Role!",
+			Name:                     "giveaway",
+			Description:              "Picks a random member with the Giveaway Role!",
+			DefaultMemberPermissions: &AdminPerms,
 		},
 		{
-			Name:        "sop-post",
-			Description: "Allows admin to update SOP and other text in the about and SOP channel.",
+			Name:                     "sop-post",
+			Description:              "Allows admin to update SOP and other text in the about and SOP channel.",
+			DefaultMemberPermissions: &AdminPerms,
 		},
 		{
-			Name:        "perks-giveaway",
-			Description: "Picks a random member with the Company Perks Role(s)!",
+			Name:                     "perks-giveaway",
+			Description:              "Picks a random member with the Company Perks Role(s)!",
+			DefaultMemberPermissions: &AdminPerms,
 		},
 		{
 			Name:        "server-commands",
@@ -111,8 +116,9 @@ var (
 			Description: "The link to find our leaderboard!",
 		},
 		{
-			Name:        "givexp",
-			Description: "Give XP to a user",
+			Name:                     "givexp",
+			Description:              "Give XP to a user",
+			DefaultMemberPermissions: &StaffPerms,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionUser,
