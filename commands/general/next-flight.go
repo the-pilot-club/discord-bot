@@ -10,6 +10,15 @@ import (
 
 func NextFlight(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{},
+	})
+	if err != nil {
+		sentry.CaptureException(err)
+		panic(err)
+	}
+
 	events, err := s.GuildScheduledEvents(i.GuildID, false)
 
 	if err != nil {
@@ -30,6 +39,7 @@ func NextFlight(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	})
 	nextflight := events[0]
 	var desc string
+	var image string
 
 	if nextflight.Description != "" {
 		desc = nextflight.Description
@@ -37,7 +47,13 @@ func NextFlight(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		desc += "Not Provided"
 	}
 
-	embed := discordgo.MessageEmbed{
+	if nextflight.Image != "" {
+		image = fmt.Sprintf("https://cdn.discordapp.com/guild-events/%v/%v.png?size=4096", nextflight.ID, nextflight.Image)
+	} else {
+		image = "https://cdn.thepilotclub.org/discord-bot/tpc-logo.png"
+	}
+
+	embed := &discordgo.MessageEmbed{
 		Author: &discordgo.MessageEmbedAuthor{
 			Name: nextflight.Name,
 		},
@@ -54,7 +70,7 @@ func NextFlight(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		},
 		Image: &discordgo.MessageEmbedImage{
-			URL: fmt.Sprintf("https://cdn.discordapp.com/guild-events/%v/%v.png?size=4096", nextflight.ID, nextflight.Image),
+			URL: image,
 		},
 		Footer: &discordgo.MessageEmbedFooter{
 			Text:    "Made by TPC Tech Team",
@@ -62,15 +78,16 @@ func NextFlight(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	}
 
-	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: "Next TPC Group Flight",
-			Embeds:  []*discordgo.MessageEmbed{&embed},
-		},
+	var editedEmbed []*discordgo.MessageEmbed
+
+	editedEmbed = append(editedEmbed, embed)
+	content := "Next TPC Group Flight"
+	_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Content: &content,
+		Embeds:  &editedEmbed,
 	})
 	if err != nil {
 		sentry.CaptureException(err)
-		return
+		panic(err)
 	}
 }
