@@ -30,6 +30,12 @@ github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZN
 github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ8=
 github.com/stretchr/testify v1.8.2/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
+github.com/the-pilot-club/tpcgo v0.0.1 h1:I96podlhFgr05K3xJlt1kEEUlspMxvlPZ3sytGuVI94=
+github.com/the-pilot-club/tpcgo v0.0.1/go.mod h1:AovuSKPl53uaK0PthTG4NKlgBD661JnEEa70XivUGlw=
+github.com/the-pilot-club/tpcgo v0.0.2 h1:no6d52Ec/KPV3Rab9hr0luhv8Mth4GCNCZWj+Ubl3Bc=
+github.com/the-pilot-club/tpcgo v0.0.2/go.mod h1:AovuSKPl53uaK0PthTG4NKlgBD661JnEEa70XivUGlw=
+github.com/the-pilot-club/tpcgo v0.0.3 h1:1kdbxthbEtYHkWgTqGQGmfam/KQQ1DfEpdVC8+7qZaA=
+github.com/the-pilot-club/tpcgo v0.0.3/go.mod h1:AovuSKPl53uaK0PthTG4NKlgBD661JnEEa70XivUGlw=
 golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b/go.mod h1:T9bdIzuCu7OtxOm1hfPfRQxPLYneinmdGuTeoZ9dtd4=
 golang.org/x/crypto v0.27.0 h1:GXm2NjJrPaiv/h1tb2UH8QfgC/hOf/+z0p6PT8o1w7A=
 golang.org/x/crypto v0.27.0/go.mod h1:1Xngt8kV6Dvbssa53Ziq6Eqn0HqbZi5Z6R0ZpwQzt70=

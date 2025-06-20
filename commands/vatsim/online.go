@@ -4,21 +4,22 @@ import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/getsentry/sentry-go"
+	"github.com/the-pilot-club/tpcgo"
 	"strings"
-	controllers "tpc-discord-bot/controllers/vatsim"
 )
 
 func GetOnlineMembers(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	controller := controllers.VATSIMController{}
+	//controller := controllers.VATSIMController{}
 
-	var onlineMembersBoth []*controllers.Pilot
-	var onlineMembersCallsign []*controllers.Pilot
-	var onlineMembersRemarks []*controllers.Pilot
-	var onlineMembersNoFlightPlan []*controllers.Pilot
+	var onlineMembersBoth []*tpcgo.Pilot
+	var onlineMembersCallsign []*tpcgo.Pilot
+	var onlineMembersRemarks []*tpcgo.Pilot
+	var onlineMembersNoFlightPlan []*tpcgo.Pilot
 
 	var callsigns string
 
-	data, err := controller.GetDataFeed()
+	//data, err := controller.GetDataFeed()
+	data, err := tpcgo.GetVatsimDataFeed("TPCDiscordBot")
 	if err != nil {
 		sentry.CaptureException(err)
 		panic(err)
