@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"time"
 	"tpc-discord-bot/handlers"
 	"tpc-discord-bot/internal/config"
 	"tpc-discord-bot/util"
@@ -22,6 +23,17 @@ func Session() (*discordgo.Session, error) {
 }
 
 func Run() {
+	if config.Env == "production" {
+		err := sentry.Init(sentry.ClientOptions{
+			Dsn:         config.SentryDSN,
+			Debug:       false,
+			Environment: config.Env,
+		})
+		if err != nil {
+			log.Fatalf("sentry.Init: %s", err)
+		}
+		defer sentry.Flush(2 * time.Second)
+	}
 
 	log.Print("Starting discord-bot-v3")
 	session, err := Session()
@@ -45,7 +57,12 @@ func Run() {
 
 	util.HandleApplicationCommandUpdates(session)
 
-	defer session.Close()
+	defer func(session *discordgo.Session) {
+		err := session.Close()
+		if err != nil {
+
+		}
+	}(session)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
@@ -53,7 +70,7 @@ func Run() {
 	<-stop
 }
 
-// AddHandlers adds all the handlers to the session
+// AddHandlers adds all the handlers to the session:.
 func AddHandlers(s *discordgo.Session) {
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {

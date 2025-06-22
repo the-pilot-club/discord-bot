@@ -8,18 +8,29 @@ import (
 	"strings"
 )
 
-func GetOnlineMembers(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	//controller := controllers.VATSIMController{}
+func VATSIMSession() (*tpcgo.VATSIMSession, error) {
+	s, err := tpcgo.NewVATSIMSession("")
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
+}
 
+func GetOnlineMembers(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var onlineMembersBoth []*tpcgo.Pilot
 	var onlineMembersCallsign []*tpcgo.Pilot
 	var onlineMembersRemarks []*tpcgo.Pilot
 	var onlineMembersNoFlightPlan []*tpcgo.Pilot
 
 	var callsigns string
+	v, err := VATSIMSession()
+	if err != nil {
+		sentry.CaptureException(err)
+		return
+	}
 
 	//data, err := controller.GetDataFeed()
-	data, err := tpcgo.GetVatsimDataFeed("TPCDiscordBot")
+	data, err := v.GetVatsimDataFeed()
 	if err != nil {
 		sentry.CaptureException(err)
 		panic(err)
@@ -61,7 +72,12 @@ func GetOnlineMembers(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				},
 			},
 		})
+		if err != nil {
+			sentry.CaptureException(err)
+			return
+		}
 		return
+
 	}
 
 	if len(onlineMembersBoth) > 0 {
