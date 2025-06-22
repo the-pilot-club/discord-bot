@@ -2,6 +2,7 @@ package event_responses
 
 import (
 	"tpc-discord-bot/commands/admin"
+	"tpc-discord-bot/commands/charters"
 	"tpc-discord-bot/commands/general"
 	"tpc-discord-bot/commands/giveaway"
 	"tpc-discord-bot/commands/training"
@@ -12,6 +13,9 @@ import (
 
 func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var GuildCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+		"charters-aircraft-request": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			charters.SendChartersAircraftRequestModal(s, i)
+		},
 		"member-count": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			general.HandleMemberCountCommand(s, i)
 		},

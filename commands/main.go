@@ -20,6 +20,16 @@ var (
 	StaffPerms     int64 = discordgo.PermissionMentionEveryone
 	GuildID              = flag.String("guild", genEnvGuild(), "Test guild ID. If not passed - bot registers commands globally")
 	GlobalCommands       = []*discordgo.ApplicationCommand{
+		// fun
+		{
+			Name:        "ping",
+			Description: "Does something cool!",
+		},
+		{
+			Name:        "dad-joke",
+			Description: "Tells you a dad joke!",
+		},
+		// Util
 		{
 			Name:        "airport",
 			Description: "Displays Information about the selected airport",
@@ -32,18 +42,6 @@ var (
 					MaxLength:   4,
 				},
 			},
-		},
-		{
-			Name:        "ping",
-			Description: "Does something cool!",
-		},
-		{
-			Name:        "dad-joke",
-			Description: "Tells you a dad joke!",
-		},
-		{
-			Name:        "hours",
-			Description: "See how many hours you have on the network!",
 		},
 		{
 			Name:        "metar",
@@ -77,22 +75,58 @@ var (
 				},
 			},
 		},
+
+		// VATSIM
+		{
+			Name:        "hours",
+			Description: "See how many hours you have on the network!",
+		},
 	}
 	GuildCommands = []*discordgo.ApplicationCommand{
+		// Admin
 		{
-			Name:                     "giveaway",
-			Description:              "Picks a random member with the Giveaway Role!",
+			Name:                     "sop-post",
+			Description:              "Allows admin to update SOP and other text in the about and SOP channel.",
 			DefaultMemberPermissions: &AdminPerms,
-			Version:                  "Dep",
+		},
+		// Charters
+		{
+			Name:        "charters-aircraft-request",
+			Description: "Use this command to request an aircraft for use in OnAir.",
+		},
+		{
+			Name:        "charters-ferry-request",
+			Description: "Use this command to request an aircraft to be ferried to another location.",
+		},
+		{
+			Name:        "charters-join",
+			Description: "Use this command if you would like to join TPC Charters",
+		},
+		// FCP
+
+		// General
+		{
+			Name:        "leaderboard",
+			Description: "The link to find our leaderboard!",
+		},
+		{
+			Name:        "member-count",
+			Description: "Displays Number of Members in the Club",
 		},
 		{
 			Name:        "next-flight",
 			Description: "The link to find out our next flight!",
 		},
 		{
-			Name:                     "sop-post",
-			Description:              "Allows admin to update SOP and other text in the about and SOP channel.",
+			Name:        "server-commands",
+			Description: "The link to get a list of server commands!",
+		},
+		// Giveaway
+		{
+			Name:                     "giveaway",
+			Description:              "Picks a random member with the Giveaway Role!",
 			DefaultMemberPermissions: &AdminPerms,
+			Version:                  "Dep",
 		},
 		{
 			Name:                     "perks-giveaway",
@@ -103,30 +137,7 @@ var (
 			Name:        "reset-giveaway",
 			Description: "Removes the giveaway roles from the users who have it",
 		},
-		{
-			Name:        "get-online-members",
-			Description: "Gets the members who are online",
-		},
-		{
-			Name:        "server-commands",
-			Description: "The link to get a list of server commands!",
-		},
-		{
-			Name:        "training-request",
-			Description: "Use this command if you would like to request training!",
-		},
-		{
-			Name:        "member-count",
-			Description: "Displays Number of Members in the Club",
-		},
-		{
-			Name:        "sync",
-			Description: "Sync your VATSIM Ratings for TPC!",
-		},
-		{
-			Name:        "leaderboard",
-			Description: "The link to find our leaderboard!",
-		},
+		// Levels
 		{
 			Name:                     "givexp",
 			Description:              "Give XP to a user",
@@ -145,6 +156,24 @@ var (
 					Required:    true,
 				},
 			},
+		},
+
+		// Suggestions
+
+		//Training
+		{
+			Name:        "training-request",
+			Description: "Use this command if you would like to request training!",
+		},
+
+		// VATSIM
+		{
+			Name:        "get-online-members",
+			Description: "Gets the members who are online",
+		},
+		{
+			Name:        "sync",
+			Description: "Sync your VATSIM Ratings for TPC!",
 		},
 	}
 )
