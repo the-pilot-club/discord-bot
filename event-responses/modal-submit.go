@@ -92,7 +92,7 @@ func ChartersAircaftRequestModal(s *discordgo.Session, i *discordgo.InteractionC
 		},
 	}
 
-	message := &discordgo.MessageSend{Embeds: []*discordgo.MessageEmbed{embed}}
+	message := &discordgo.MessageSend{Content: fmt.Sprintf("<@&%v>", config.GetRoleId(i.GuildID, "Charters Managers")), Embeds: []*discordgo.MessageEmbed{embed}}
 
 	_, err := s.ChannelMessageSendComplex(config.GetChannelId(i.GuildID, "Charters Requests"), message)
 	if err != nil {
@@ -102,6 +102,60 @@ func ChartersAircaftRequestModal(s *discordgo.Session, i *discordgo.InteractionC
 	}
 
 	content := fmt.Sprintf("Thank you for submitting an aircraft requests for TPC Charters. You can view your request here: <#%v>", config.GetChannelId(i.GuildID, "Charters Requests"))
+	response := &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: content,
+			Flags:   discordgo.MessageFlagsEphemeral,
+		},
+	}
+	err = s.InteractionRespond(i.Interaction, response)
+	if err != nil {
+		return
+	}
+}
+
+func ChartersFerryRequestModal(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	modalData := i.ModalSubmitData()
+
+	Aircraft := modalData.Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value
+	Start := modalData.Components[1].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value
+	End := modalData.Components[2].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value
+
+	var Details string
+
+	Details += fmt.Sprintf("> **TPC Charters User:** <@%v>\n> **Registration Number:** %v\n> **Starting Location:** %v\n> **Ending Location:** %v", i.Member.User.ID, Aircraft, Start, End)
+
+	embed := &discordgo.MessageEmbed{
+		Author: &discordgo.MessageEmbedAuthor{
+			Name:    i.Member.Nick,
+			IconURL: i.Member.User.AvatarURL("64"),
+		},
+		Title: "New Ferry Request",
+		Color: 3651327,
+		Fields: []*discordgo.MessageEmbedField{
+			{
+				Name:  "Aircraft Details",
+				Value: Details,
+			},
+		},
+		Timestamp: time.Now().Format(time.RFC3339),
+		Footer: &discordgo.MessageEmbedFooter{
+			Text:    "Made by the TPC Tech Team",
+			IconURL: "https://cdn.thepilotclub.org/discord-bot/tpc-logo.png",
+		},
+	}
+
+	message := &discordgo.MessageSend{Content: fmt.Sprintf("<@&%v>", config.GetRoleId(i.GuildID, "Charters Managers")), Embeds: []*discordgo.MessageEmbed{embed}}
+
+	_, err := s.ChannelMessageSendComplex(config.GetChannelId(i.GuildID, "Charters Requests"), message)
+	if err != nil {
+		sentry.CaptureException(err)
+		panic(err)
+		return
+	}
+
+	content := fmt.Sprintf("Thank you for submitting a ferry requests for TPC Charters. You can view your request here: <#%v>", config.GetChannelId(i.GuildID, "Charters Requests"))
 	response := &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{

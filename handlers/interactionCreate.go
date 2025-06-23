@@ -14,6 +14,9 @@ func InteractionCreateHandler(s *discordgo.Session, i *discordgo.InteractionCrea
 		if data.CustomID == "ChartersAircraftRequest" {
 			eventresponses.ChartersAircaftRequestModal(s, i)
 		}
+		if data.CustomID == "ChartersFerryRequest" {
+			eventresponses.ChartersFerryRequestModal(s, i)
+		}
 	}
 	if i.Type == discordgo.InteractionMessageComponent {
 		eventresponses.HandleButtonSubmit(s, i)
