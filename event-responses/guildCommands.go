@@ -19,6 +19,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"charters-ferry-request": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			charters.SendFerryRequestModal(s, i)
 		},
+		"charters-join": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			charters.SendChartersJoinRequest(s, i)
+		},
 		"member-count": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			general.HandleMemberCountCommand(s, i)
 		},

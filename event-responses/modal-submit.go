@@ -168,3 +168,58 @@ func ChartersFerryRequestModal(s *discordgo.Session, i *discordgo.InteractionCre
 		return
 	}
 }
+
+func ChartersJoinModal(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	modalData := i.ModalSubmitData()
+
+	AirlineCode := modalData.Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value
+	HomeBase := modalData.Components[1].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value
+	AircraftType := modalData.Components[2].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value
+	SeatingConfig := modalData.Components[3].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value
+
+	var Details string
+
+	Details += fmt.Sprintf("> **TPC Charters User:** <@%v>\n> **Airline Code:** %v\n> **Home Base:** %v\n> **Aircraft Type Requested:** %v\n> **Seating Config:** %v", i.Member.User.ID, AirlineCode, HomeBase, AircraftType, SeatingConfig)
+
+	embed := &discordgo.MessageEmbed{
+		Author: &discordgo.MessageEmbedAuthor{
+			Name:    i.Member.Nick,
+			IconURL: i.Member.User.AvatarURL("64"),
+		},
+		Title: "New Join Request",
+		Color: 3651327,
+		Fields: []*discordgo.MessageEmbedField{
+			{
+				Name:  "Details",
+				Value: Details,
+			},
+		},
+		Timestamp: time.Now().Format(time.RFC3339),
+		Footer: &discordgo.MessageEmbedFooter{
+			Text:    "Made by the TPC Tech Team",
+			IconURL: "https://cdn.thepilotclub.org/discord-bot/tpc-logo.png",
+		},
+	}
+
+	message := &discordgo.MessageSend{Content: fmt.Sprintf("<@&%v>", config.GetRoleId(i.GuildID, "Charters Managers")), Embeds: []*discordgo.MessageEmbed{embed}}
+
+	_, err := s.ChannelMessageSendComplex(config.GetChannelId(i.GuildID, "Charters Requests"), message)
+	if err != nil {
+		sentry.CaptureException(err)
+		panic(err)
+		return
+	}
+
+	content := fmt.Sprintf("Thank you for submitting a join requests for TPC Charters. You can view your request here: <#%v>", config.GetChannelId(i.GuildID, "Charters Requests"))
+	response := &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: content,
+			Flags:   discordgo.MessageFlagsEphemeral,
+		},
+	}
+	err = s.InteractionRespond(i.Interaction, response)
+	if err != nil {
+		return
+	}
+}
