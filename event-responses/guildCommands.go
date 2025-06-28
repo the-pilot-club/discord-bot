@@ -3,6 +3,7 @@ package event_responses
 import (
 	"tpc-discord-bot/commands/admin"
 	"tpc-discord-bot/commands/charters"
+	"tpc-discord-bot/commands/fcp"
 	"tpc-discord-bot/commands/general"
 	"tpc-discord-bot/commands/giveaway"
 	"tpc-discord-bot/commands/training"
@@ -21,6 +22,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 		"charters-join": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			charters.SendChartersJoinRequest(s, i)
+		},
+		"fcp-link": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			fcp.SendFCPLink(s, i)
 		},
 		"member-count": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			general.HandleMemberCountCommand(s, i)

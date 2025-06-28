@@ -103,6 +103,10 @@ var (
 			Description: "Use this command if you would like to join TPC Charters",
 		},
 		// FCP
+		{
+			Name:        "fcp-link",
+			Description: "The link to the Flight Crew Portal",
+		},
 
 		// General
 		{
