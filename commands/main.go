@@ -104,6 +104,18 @@ var (
 		},
 		// FCP
 		{
+			Name:        "get-callsign",
+			Description: "Get a member's TPC Callsign",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "member",
+					Description: "The member you wish to get the callsign of",
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Required:    true,
+				},
+			},
+		},
+		{
 			Name:        "fcp-link",
 			Description: "The link to the Flight Crew Portal",
 		},

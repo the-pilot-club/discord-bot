@@ -26,6 +26,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"fcp-link": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			fcp.SendFCPLink(s, i)
 		},
+		"get-callsign": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			fcp.GetFcpCallsign(s, i)
+		},
 		"member-count": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			general.HandleMemberCountCommand(s, i)
 		},
