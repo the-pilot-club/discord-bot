@@ -116,6 +116,18 @@ var (
 			},
 		},
 		{
+			Name:        "member-info",
+			Description: "Get a member's FCP Info!",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "member",
+					Description: "The member you wish to get the info of",
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Required:    true,
+				},
+			},
+		},
+		{
 			Name:        "fcp-link",
 			Description: "The link to the Flight Crew Portal",
 		},
