@@ -22,6 +22,7 @@ var Env = os.Getenv("GO_ENV")
 var ConfigPath = os.Getenv("CONFIG_PATH")
 var NinjaApiKey = os.Getenv("NINJA_API_KEY")
 var FCPToken = os.Getenv("FCP_TOKEN")
+var FCPEnv = os.Getenv("FCP_ENV")
 
 type ServerConfig struct {
 	Id            string              `yaml:"id"`
@@ -204,7 +205,7 @@ func GetInternalApiKey(id string) string {
 	return os.Getenv("INTERNAL_API_KEY")
 }
 
-// checks if the channel has the XP permission
+// checks if the channel has the XP permission.
 func ValidXpChannel(id string, channel *discordgo.Channel) bool {
 	channelName := channel.Name
 	cfg := configs[id]
@@ -222,8 +223,8 @@ func ValidXpChannel(id string, channel *discordgo.Channel) bool {
 	return false // return false either way - should we log this?
 }
 
-// Returns the permission value as a boolean based on what is passed in
-// if the value is mispelled or not found it will return false
+// Returns the permission value as a boolean based on what is passed in.
+// if the value is mispelled or not found it will return false.
 func GetBooleanPermissionValue(value string) bool {
 	return strings.EqualFold(value, "true")
 }

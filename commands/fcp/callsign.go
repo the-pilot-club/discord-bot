@@ -11,7 +11,7 @@ import (
 
 func FCPSession() (s *tpcgo.FCPSession, err error) {
 
-	s, err = tpcgo.NewFCPSession(config.FCPToken, "production")
+	s, err = tpcgo.NewFCPSession("Bearer "+config.FCPToken, config.FCPEnv)
 	if err != nil {
 		sentry.CaptureException(err)
 		return nil, err

@@ -23,6 +23,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"charters-join": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			charters.SendChartersJoinRequest(s, i)
 		},
+		"add-log" : func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			fcp.AddAuditLogCommand(s, i)
+		},
 		"fcp-link": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			fcp.SendFCPLink(s, i)
 		},

@@ -18,6 +18,7 @@ func genEnvGuild() string {
 var (
 	AdminPerms     int64 = discordgo.PermissionAdministrator
 	StaffPerms     int64 = discordgo.PermissionMentionEveryone
+	ModPerms       int64 = discordgo.PermissionBanMembers
 	GuildID              = flag.String("guild", genEnvGuild(), "Test guild ID. If not passed - bot registers commands globally")
 	GlobalCommands       = []*discordgo.ApplicationCommand{
 		// fun
@@ -103,6 +104,25 @@ var (
 			Description: "Use this command if you would like to join TPC Charters",
 		},
 		// FCP
+		{
+			Name: "add-log",
+			Description: "Add a FCP audit log to a member",
+			DefaultMemberPermissions: &ModPerms,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name: "member",
+					Description: "The member you wish to add an audit log for.",
+					Type: discordgo.ApplicationCommandOptionUser,
+					Required: true,
+				},
+				{
+					Name: "entry",
+					Description: "Log Content",
+					Type: discordgo.ApplicationCommandOptionString,
+					Required: true,
+				},
+			},
+		},
 		{
 			Name:        "get-callsign",
 			Description: "Get a member's TPC Callsign",
