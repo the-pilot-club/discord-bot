@@ -45,6 +45,18 @@ var (
 			},
 		},
 		{
+			Name:        "charts",
+			Description: "Displays the charts of an airport.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "icao",
+					Description: "The ICAO code of the airport",
+					Type:        discordgo.ApplicationCommandOptionString,
+					Required:    true,
+				},
+			},
+		},
+		{
 			Name:        "metar",
 			Description: "Gives METAR for a Specific Airport",
 			Options: []*discordgo.ApplicationCommandOption{
@@ -105,21 +117,21 @@ var (
 		},
 		// FCP
 		{
-			Name: "add-log",
-			Description: "Add a FCP audit log to a member",
+			Name:                     "add-log",
+			Description:              "Add a FCP audit log to a member",
 			DefaultMemberPermissions: &ModPerms,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
-					Name: "member",
+					Name:        "member",
 					Description: "The member you wish to add an audit log for.",
-					Type: discordgo.ApplicationCommandOptionUser,
-					Required: true,
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Required:    true,
 				},
 				{
-					Name: "entry",
+					Name:        "entry",
 					Description: "Log Content",
-					Type: discordgo.ApplicationCommandOptionString,
-					Required: true,
+					Type:        discordgo.ApplicationCommandOptionString,
+					Required:    true,
 				},
 			},
 		},

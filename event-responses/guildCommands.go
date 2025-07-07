@@ -15,64 +15,64 @@ import (
 func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var GuildCommandHandler = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
 		"charters-aircraft-request": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			charters.SendChartersAircraftRequestModal(s, i)
+			go charters.SendChartersAircraftRequestModal(s, i)
 		},
 		"charters-ferry-request": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			charters.SendFerryRequestModal(s, i)
+			go charters.SendFerryRequestModal(s, i)
 		},
 		"charters-join": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			charters.SendChartersJoinRequest(s, i)
+			go charters.SendChartersJoinRequest(s, i)
 		},
-		"add-log" : func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			fcp.AddAuditLogCommand(s, i)
+		"add-log": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go fcp.AddAuditLogCommand(s, i)
 		},
 		"fcp-link": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			fcp.SendFCPLink(s, i)
+			go fcp.SendFCPLink(s, i)
 		},
 		"get-callsign": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			fcp.GetFcpCallsign(s, i)
+			go fcp.GetFcpCallsign(s, i)
 		},
 		"member-info": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			fcp.UserInfoFCP(s, i)
+			go fcp.UserInfoFCP(s, i)
 		},
 		"member-count": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			general.HandleMemberCountCommand(s, i)
+			go general.HandleMemberCountCommand(s, i)
 		},
 		"sync": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			vatsim.SyncCommand(s, i)
+			go vatsim.SyncCommand(s, i)
 		},
 		"hours": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			vatsim.HoursCommand(s, i)
+			go vatsim.HoursCommand(s, i)
 		},
 		"leaderboard": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			general.HandleLeaderboardCommand(s, i)
+			go general.HandleLeaderboardCommand(s, i)
 		},
 		"get-online-members": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			vatsim.GetOnlineMembers(s, i)
+			go vatsim.GetOnlineMembers(s, i)
 		},
 		"givexp": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			general.HandleGiveXpCommand(s, i)
+			go general.HandleGiveXpCommand(s, i)
 		},
 		"giveaway": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			giveaway.GiveawayMain(s, i)
+			go giveaway.GiveawayMain(s, i)
 		},
 		"perks-giveaway": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			giveaway.PekrsGiveaway(s, i)
+			go giveaway.PekrsGiveaway(s, i)
 		},
 		"next-flight": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			general.NextFlight(s, i)
+			go general.NextFlight(s, i)
 		},
 		"reset-giveaway": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			giveaway.ResetGiveaway(s, i)
+			go giveaway.ResetGiveaway(s, i)
 		},
 		"server-commands": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			general.ServerCommands(s, i)
+			go general.ServerCommands(s, i)
 		},
 		"sop-post": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			admin.SOPCommand(s, i)
+			go admin.SOPCommand(s, i)
 		},
 		"training-request": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			training.TrainingRequest(s, i)
+			go training.TrainingRequest(s, i)
 		},
 	}
 	if h, ok := GuildCommandHandler[i.ApplicationCommandData().Name]; ok {
