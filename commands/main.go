@@ -57,6 +57,18 @@ var (
 			},
 		},
 		{
+			Name:        "taf",
+			Description: "Displays the taf of an airport.",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "icao",
+					Description: "The ICAO code of the airport",
+					Type:        discordgo.ApplicationCommandOptionString,
+					Required:    true,
+				},
+			},
+		},
+		{
 			Name:        "metar",
 			Description: "Gives METAR for a Specific Airport",
 			Options: []*discordgo.ApplicationCommandOption{

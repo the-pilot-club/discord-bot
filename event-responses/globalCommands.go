@@ -20,6 +20,9 @@ func GlobalCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"metar": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go util.MetarCommand(s, i)
 		},
+		"taf": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go util.TafCommand(s, i)
+		},
 		"charts": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go util.ChartsCommand(s, i)
 		},
