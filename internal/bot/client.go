@@ -46,9 +46,6 @@ func Run() {
 	// add all handlers to the session
 	AddHandlers(session)
 
-	session.AddHandler(handlers.OnGuildMemberAdd)
-	session.AddHandler(handlers.OnGuildMemberRemove)
-
 	err = session.Open()
 	if err != nil {
 		sentry.CaptureException(err)
@@ -76,6 +73,13 @@ func AddHandlers(s *discordgo.Session) {
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		go config.IntervalReloadConfigs()
 		go handlers.HandleCLientReady(s)
+	})
+
+	s.AddHandler(func(s *discordgo.Session, g *discordgo.GuildMemberAdd) {
+		go handlers.OnGuildMemberAdd(s, g)
+	})
+	s.AddHandler(func(s *discordgo.Session, g *discordgo.GuildMemberRemove) {
+		go handlers.OnGuildMemberRemove(s, g)
 	})
 
 	s.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {
