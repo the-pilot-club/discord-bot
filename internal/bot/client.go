@@ -78,6 +78,13 @@ func AddHandlers(s *discordgo.Session) {
 	s.AddHandler(func(s *discordgo.Session, m *discordgo.GuildMemberUpdate) {
 		go handlers.HandleGuildMemberUpdate(s, m)
 	})
+	s.AddHandler(func(s *discordgo.Session, m *discordgo.GuildBanAdd) {
+		go handlers.HandleGuildBanAdd(s, m)
+	})
+
+	s.AddHandler(func(s *discordgo.Session, m *discordgo.GuildBanRemove) {
+		go handlers.HandleGuildBanRemove(s, m)
+	})
 
 	s.AddHandler(func(s *discordgo.Session, g *discordgo.GuildMemberAdd) {
 		go handlers.OnGuildMemberAdd(s, g)

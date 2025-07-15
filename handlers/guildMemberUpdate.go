@@ -12,6 +12,7 @@ import (
 func HandleGuildMemberUpdate(s *discordgo.Session, m *discordgo.GuildMemberUpdate) {
 	before := m.BeforeUpdate
 	after := m
+	time.Sleep(500 * time.Millisecond)
 	var RoleEmbed []string
 	roles := make(map[string]string)
 
