@@ -10,8 +10,9 @@ import (
 
 func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	go HandleXpGive(s, m)
-
+	if config.GetXpGiveEnabled(m.GuildID) {
+		go HandleXpGive(s, m)
+	}
 	chnl, _ := s.Channel(m.ChannelID)
 	if chnl.Type == 1 || chnl.Type == 3 {
 		return

@@ -232,7 +232,7 @@ func GetBooleanPermissionValue(value string) bool {
 // Returns the permission value as a string
 // All permission values are strings - this allows for greater flexibility -
 // and handling of typos in the config (i.e. tuer or flsae admit it we have all done it)
-// or additions of numerical values for a permission in the future
+// or additions of numerical values for a permission in the future.
 func GetPermissionValue(channel ChannelConfig, permissionName string) string {
 	for i := 0; i < len(channel.Permissions); i++ {
 		if strings.EqualFold(channel.Permissions[i].Name, permissionName) {
