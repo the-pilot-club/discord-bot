@@ -201,6 +201,9 @@ channels:
     - name: Charters Requests
       id: 1148307483828428939
       permissions: []
+    - name: Bot Dump
+      id: 1148307485904601175
+      permissions: []
 emojis:
     - name: TPC Reaction
       id: :giveaway:1225560451279097926
