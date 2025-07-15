@@ -75,6 +75,10 @@ func AddHandlers(s *discordgo.Session) {
 		go handlers.HandleCLientReady(s)
 	})
 
+	s.AddHandler(func(s *discordgo.Session, m *discordgo.GuildMemberUpdate) {
+		go handlers.HandleGuildMemberUpdate(s, m)
+	})
+
 	s.AddHandler(func(s *discordgo.Session, g *discordgo.GuildMemberAdd) {
 		go handlers.OnGuildMemberAdd(s, g)
 	})
