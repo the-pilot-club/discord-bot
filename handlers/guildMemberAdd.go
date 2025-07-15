@@ -57,7 +57,6 @@ func OnGuildMemberAdd(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(created.Unix())
 
 	err = s.GuildMemberRoleAdd(m.GuildID, m.User.ID, config.GetRoleId(m.GuildID, "Pilots"))
 	if err != nil {
