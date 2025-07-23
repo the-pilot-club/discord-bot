@@ -23,18 +23,20 @@ var ConfigPath = os.Getenv("CONFIG_PATH")
 var NinjaApiKey = os.Getenv("NINJA_API_KEY")
 var FCPToken = os.Getenv("FCP_TOKEN")
 var FCPEnv = os.Getenv("FCP_ENV")
+var CoreAPIToken = os.Getenv("INTERNAL_API_KEY")
 
 type ServerConfig struct {
-	Id            string              `yaml:"id"`
-	Name          string              `yaml:"name"`
-	XpGiveEnabled bool                `yaml:"xpgive-enabled"`
-	Roles         []RoleConfig        `yaml:"roles"`
-	RatingRoles   []RatingRolesConfig `yaml:"ratings-roles"`
-	PilotRoles    []RatingRolesConfig `yaml:"pilot-rating-roles"`
-	Channels      []ChannelConfig     `yaml:"channels"`
-	Emojis        []EmojiConfig       `yaml:"emojis"`
-	BaseUrl       []BaseUrls          `yaml:"baseurl"`
-	RoleRewards   []RoleReward        `yaml:"role_rewards"`
+	Id             string              `yaml:"id"`
+	Name           string              `yaml:"name"`
+	XpGiveEnabled  bool                `yaml:"xpgive-enabled"`
+	EventReminders bool                `yaml:"event-reminders"`
+	Roles          []RoleConfig        `yaml:"roles"`
+	RatingRoles    []RatingRolesConfig `yaml:"ratings-roles"`
+	PilotRoles     []RatingRolesConfig `yaml:"pilot-rating-roles"`
+	Channels       []ChannelConfig     `yaml:"channels"`
+	Emojis         []EmojiConfig       `yaml:"emojis"`
+	BaseUrl        []BaseUrls          `yaml:"baseurl"`
+	RoleRewards    []RoleReward        `yaml:"role_rewards"`
 }
 
 type RoleConfig struct {
@@ -81,6 +83,10 @@ var Cfg ServerConfig
 func GetXpGiveEnabled(id string) bool {
 	cfg := configs[id]
 	return cfg.XpGiveEnabled
+}
+func EventRemindersEnabled(id string) bool {
+	cfg := configs[id]
+	return cfg.EventReminders
 }
 
 func LoadAllServerConfigOrPanic(configPath string) map[string]ServerConfig {

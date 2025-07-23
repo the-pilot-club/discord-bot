@@ -9,10 +9,15 @@ import (
 	"tpc-discord-bot/internal/config"
 )
 
-func FCPSession() (s *tpcgo.FCPSession, err error) {
+func FCPSession() (session *tpcgo.Session, err error) {
 
-	s, err = tpcgo.NewFCPSession("Bearer "+config.FCPToken, config.FCPEnv)
-	if err != nil {
+	s, errr := tpcgo.NewSession(tpcgo.SessionConfig{
+		config.FCPToken,
+		config.FCPEnv,
+		"",
+		config.CoreAPIToken,
+	})
+	if errr != nil {
 		sentry.CaptureException(err)
 		return nil, err
 	}

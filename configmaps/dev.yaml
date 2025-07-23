@@ -1,6 +1,7 @@
 id: 1148307481085358190
 name: Dev Server
 xpgive-enabled: false
+event-reminders: true
 roles:
     - name: VR
       id: 1148307481085358191

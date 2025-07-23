@@ -6,12 +6,19 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/the-pilot-club/tpcgo"
 	"strings"
+	"tpc-discord-bot/internal/config"
 )
 
-func VATSIMSession() (*tpcgo.VATSIMSession, error) {
-	s, err := tpcgo.NewVATSIMSession("")
-	if err != nil {
-		return nil, err
+func VATSIMSession() (session *tpcgo.Session, err error) {
+	s, errr := tpcgo.NewSession(tpcgo.SessionConfig{
+		config.FCPToken,
+		config.FCPEnv,
+		"",
+		config.CoreAPIToken,
+	})
+	if errr != nil {
+		sentry.CaptureException(errr)
+		return nil, errr
 	}
 	return s, nil
 }
