@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"time"
-	cron_jobs "tpc-discord-bot/cron-jobs"
 	"tpc-discord-bot/handlers"
 	"tpc-discord-bot/internal/config"
 	"tpc-discord-bot/util"
@@ -74,7 +73,7 @@ func AddHandlers(s *discordgo.Session) {
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		go config.IntervalReloadConfigs()
 		go handlers.HandleCLientReady(s)
-		go cron_jobs.HandleCronJobs(s)
+		//go cron_jobs.HandleCronJobs(s)
 	})
 
 	s.AddHandler(func(s *discordgo.Session, m *discordgo.GuildMemberUpdate) {
