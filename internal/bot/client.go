@@ -6,9 +6,9 @@ import (
 	"os"
 	"os/signal"
 	"time"
-	"tpc-discord-bot/commands"
 	"tpc-discord-bot/handlers"
 	"tpc-discord-bot/internal/config"
+	"tpc-discord-bot/util"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -46,33 +46,20 @@ func Run() {
 	// add all handlers to the session
 	AddHandlers(session)
 
-	session.AddHandler(handlers.OnGuildMemberAdd)
-	session.AddHandler(handlers.OnGuildMemberRemove)
-
 	err = session.Open()
 	if err != nil {
 		sentry.CaptureException(err)
 		println(err.Error())
 	}
 
-	log.Println("Adding commands...")
-	registeredGlobalCommands := make([]*discordgo.ApplicationCommand, len(commands.GlobalCommands))
-	for i, v := range commands.GlobalCommands {
-		cmd, err := session.ApplicationCommandCreate(session.State.User.ID, "", v)
+	util.HandleApplicationCommandUpdates(session)
+
+	defer func(session *discordgo.Session) {
+		err := session.Close()
 		if err != nil {
-			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
+
 		}
-		registeredGlobalCommands[i] = cmd
-	}
-	registeredGuildCommands := make([]*discordgo.ApplicationCommand, len(commands.GuildCommands))
-	for i, v := range commands.GuildCommands {
-		cmd, err := session.ApplicationCommandCreate(session.State.User.ID, *commands.GuildID, v)
-		if err != nil {
-			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
-		}
-		registeredGuildCommands[i] = cmd
-	}
-	defer session.Close()
+	}(session)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
@@ -80,12 +67,31 @@ func Run() {
 	<-stop
 }
 
-// AddHandlers adds all the handlers to the session
+// AddHandlers adds all the handlers to the session:.
 func AddHandlers(s *discordgo.Session) {
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		go config.IntervalReloadConfigs()
 		go handlers.HandleCLientReady(s)
+		//go cron_jobs.HandleCronJobs(s)
+	})
+
+	s.AddHandler(func(s *discordgo.Session, m *discordgo.GuildMemberUpdate) {
+		go handlers.HandleGuildMemberUpdate(s, m)
+	})
+	s.AddHandler(func(s *discordgo.Session, m *discordgo.GuildBanAdd) {
+		go handlers.HandleGuildBanAdd(s, m)
+	})
+
+	s.AddHandler(func(s *discordgo.Session, m *discordgo.GuildBanRemove) {
+		go handlers.HandleGuildBanRemove(s, m)
+	})
+
+	s.AddHandler(func(s *discordgo.Session, g *discordgo.GuildMemberAdd) {
+		go handlers.OnGuildMemberAdd(s, g)
+	})
+	s.AddHandler(func(s *discordgo.Session, g *discordgo.GuildMemberRemove) {
+		go handlers.OnGuildMemberRemove(s, g)
 	})
 
 	s.AddHandler(func(s *discordgo.Session, m *discordgo.MessageCreate) {

@@ -22,18 +22,21 @@ var Env = os.Getenv("GO_ENV")
 var ConfigPath = os.Getenv("CONFIG_PATH")
 var NinjaApiKey = os.Getenv("NINJA_API_KEY")
 var FCPToken = os.Getenv("FCP_TOKEN")
+var FCPEnv = os.Getenv("FCP_ENV")
+var CoreAPIToken = os.Getenv("INTERNAL_API_KEY")
 
 type ServerConfig struct {
-	Id            string              `yaml:"id"`
-	Name          string              `yaml:"name"`
-	XpGiveEnabled bool                `yaml:"xpgive-enabled"`
-	Roles         []RoleConfig        `yaml:"roles"`
-	RatingRoles   []RatingRolesConfig `yaml:"ratings-roles"`
-	PilotRoles    []RatingRolesConfig `yaml:"pilot-rating-roles"`
-	Channels      []ChannelConfig     `yaml:"channels"`
-	Emojis        []EmojiConfig       `yaml:"emojis"`
-	BaseUrl       []BaseUrls          `yaml:"baseurl"`
-	RoleRewards   []RoleReward        `yaml:"role_rewards"`
+	Id             string              `yaml:"id"`
+	Name           string              `yaml:"name"`
+	XpGiveEnabled  bool                `yaml:"xpgive-enabled"`
+	EventReminders bool                `yaml:"event-reminders"`
+	Roles          []RoleConfig        `yaml:"roles"`
+	RatingRoles    []RatingRolesConfig `yaml:"ratings-roles"`
+	PilotRoles     []RatingRolesConfig `yaml:"pilot-rating-roles"`
+	Channels       []ChannelConfig     `yaml:"channels"`
+	Emojis         []EmojiConfig       `yaml:"emojis"`
+	BaseUrl        []BaseUrls          `yaml:"baseurl"`
+	RoleRewards    []RoleReward        `yaml:"role_rewards"`
 }
 
 type RoleConfig struct {
@@ -80,6 +83,10 @@ var Cfg ServerConfig
 func GetXpGiveEnabled(id string) bool {
 	cfg := configs[id]
 	return cfg.XpGiveEnabled
+}
+func EventRemindersEnabled(id string) bool {
+	cfg := configs[id]
+	return cfg.EventReminders
 }
 
 func LoadAllServerConfigOrPanic(configPath string) map[string]ServerConfig {
@@ -204,7 +211,7 @@ func GetInternalApiKey(id string) string {
 	return os.Getenv("INTERNAL_API_KEY")
 }
 
-// checks if the channel has the XP permission
+// checks if the channel has the XP permission.
 func ValidXpChannel(id string, channel *discordgo.Channel) bool {
 	channelName := channel.Name
 	cfg := configs[id]
@@ -222,8 +229,8 @@ func ValidXpChannel(id string, channel *discordgo.Channel) bool {
 	return false // return false either way - should we log this?
 }
 
-// Returns the permission value as a boolean based on what is passed in
-// if the value is mispelled or not found it will return false
+// Returns the permission value as a boolean based on what is passed in.
+// if the value is mispelled or not found it will return false.
 func GetBooleanPermissionValue(value string) bool {
 	return strings.EqualFold(value, "true")
 }
@@ -231,7 +238,7 @@ func GetBooleanPermissionValue(value string) bool {
 // Returns the permission value as a string
 // All permission values are strings - this allows for greater flexibility -
 // and handling of typos in the config (i.e. tuer or flsae admit it we have all done it)
-// or additions of numerical values for a permission in the future
+// or additions of numerical values for a permission in the future.
 func GetPermissionValue(channel ChannelConfig, permissionName string) string {
 	for i := 0; i < len(channel.Permissions); i++ {
 		if strings.EqualFold(channel.Permissions[i].Name, permissionName) {
