@@ -2,9 +2,11 @@ package bot
 
 import (
 	"github.com/bwmarrin/discordgo"
+	"github.com/getsentry/sentry-go"
 	"log"
 	"os"
 	"os/signal"
+	"time"
 	"tpc-discord-bot/handlers"
 	"tpc-discord-bot/internal/config"
 )
@@ -18,6 +20,18 @@ func Session() (*discordgo.Session, error) {
 }
 
 func Run() {
+	if config.Env == "production" {
+		err := sentry.Init(sentry.ClientOptions{
+			Dsn:         config.SentryDSN,
+			Debug:       false,
+			Environment: config.Env,
+		})
+		if err != nil {
+			log.Fatalf("sentry.Init: %s", err)
+		}
+		defer sentry.Flush(2 * time.Second)
+	}
+
 	log.Print("Starting discord-bot-v3")
 	session, err := Session()
 	if err != nil {

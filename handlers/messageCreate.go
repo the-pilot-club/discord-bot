@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/getsentry/sentry-go"
 	"strings"
 	eventresponses "tpc-discord-bot/event-responses"
 	"tpc-discord-bot/internal/config"
@@ -76,7 +77,10 @@ func MessageCreateHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 		if ToReact {
 			emoji := config.GetEmojiId(m.GuildID, "TPC Reaction")
-			s.MessageReactionAdd(m.ChannelID, m.ID, emoji)
+			err := s.MessageReactionAdd(m.ChannelID, m.ID, emoji)
+			if err != nil {
+				sentry.CaptureException(err)
+			}
 		}
 		return
 	}
