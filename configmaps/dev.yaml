@@ -205,6 +205,9 @@ channels:
     - name: Bot Dump
       id: 1148307485904601175
       permissions: []
+    - name: Quiz Channel
+      id: 1148307483002155102
+      permissions: [ ]
 emojis:
     - name: TPC Reaction
       id: :giveaway:1225560451279097926
@@ -212,7 +215,7 @@ baseurl:
   - name: FCP
     url: https://flightcrew-beta.thepilotclub.org
   - name: Internal API
-    url: https://api-beta.thepilotclub.org
+    url: https://api.thepilotclub.org
   - name: Leaderboard
     url: https://mee6.xyz/thepilotclub
 role_rewards:
