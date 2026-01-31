@@ -74,6 +74,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"training-request": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go training.TrainingRequest(s, i)
 		},
+		"training-faq": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go general.HandleTrainingFAQ(s, i)
+		},
 	}
 	if h, ok := GuildCommandHandler[i.ApplicationCommandData().Name]; ok {
 		h(s, i)

@@ -193,6 +193,10 @@ var (
 			Name:        "server-commands",
 			Description: "The link to get a list of server commands!",
 		},
+		{
+			Name:        "training-faq",
+			Description: "Replies with information about training!",
+		},
 		// Giveaway
 		{
 			Name:                     "giveaway",
