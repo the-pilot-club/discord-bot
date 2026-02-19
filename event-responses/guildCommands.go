@@ -29,6 +29,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"fcp-link": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go fcp.SendFCPLink(s, i)
 		},
+		"staff-vacancies": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go fcp.SendStaffVacancies(s, i)
+		},
 		"get-callsign": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go fcp.GetFcpCallsign(s, i)
 		},

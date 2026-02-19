@@ -175,6 +175,10 @@ var (
 			Name:        "fcp-link",
 			Description: "The link to the Flight Crew Portal",
 		},
+		{
+			Name:        "staff-vacancies",
+			Description: "Gives the link to Staff Vacancies",
+		},
 
 		// General
 		{
