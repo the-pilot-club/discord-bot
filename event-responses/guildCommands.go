@@ -29,6 +29,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"fcp-link": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go fcp.SendFCPLink(s, i)
 		},
+		"staff-vacancies": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go fcp.SendStaffVacancies(s, i)
+		},
 		"get-callsign": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go fcp.GetFcpCallsign(s, i)
 		},
@@ -73,6 +76,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 		"training-request": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go training.TrainingRequest(s, i)
+		},
+		"training-faq": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go general.HandleTrainingFAQ(s, i)
 		},
 	}
 	if h, ok := GuildCommandHandler[i.ApplicationCommandData().Name]; ok {
