@@ -5,6 +5,7 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/go-co-op/gocron/v2"
 	"time"
+	"tpc-discord-bot/cron-jobs/airac"
 	"tpc-discord-bot/cron-jobs/events"
 	"tpc-discord-bot/handlers"
 )
@@ -53,6 +54,17 @@ func HandleCronJobs(ds *discordgo.Session) {
 		gocron.CronJob("0 9 * * *", false),
 		gocron.NewTask(func() {
 			handlers.SendQuizQuestion(ds)
+		}),
+	)
+	if err != nil {
+		sentry.CaptureException(err)
+	}
+
+	// AIRAC cycle reminder — runs daily at midnight
+	_, err = s.NewJob(
+		gocron.CronJob("0 0 * * *", false),
+		gocron.NewTask(func() {
+			go airac.AiracReminder(ds)
 		}),
 	)
 	if err != nil {

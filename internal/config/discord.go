@@ -24,6 +24,7 @@ var NinjaApiKey = os.Getenv("NINJA_API_KEY")
 var FCPToken = os.Getenv("FCP_TOKEN")
 var FCPEnv = os.Getenv("FCP_ENV")
 var CoreAPIToken = os.Getenv("INTERNAL_API_KEY")
+var RedisURL = os.Getenv("REDIS_URL")
 
 type ServerConfig struct {
 	Id             string              `yaml:"id"`

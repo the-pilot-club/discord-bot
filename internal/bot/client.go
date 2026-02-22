@@ -8,6 +8,7 @@ import (
 	"time"
 	cron_jobs "tpc-discord-bot/cron-jobs"
 	"tpc-discord-bot/handlers"
+	"tpc-discord-bot/internal/cache"
 	"tpc-discord-bot/internal/config"
 	"tpc-discord-bot/util"
 
@@ -35,6 +36,9 @@ func Run() {
 		}
 		defer sentry.Flush(2 * time.Second)
 	}
+
+	cache.InitCache()
+	defer cache.CloseCache()
 
 	log.Print("Starting discord-bot-v3")
 	session, err := Session()
