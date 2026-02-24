@@ -239,7 +239,120 @@ var (
 		},
 
 		// Suggestions
-
+				{
+			Name:        "idea",
+			Description: "Give us an idea that would make the club better",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "your-idea",
+					Description: "Tell us your great idea",
+					Required:    true,
+				},
+			},
+		},
+		{
+			Name:                     "idea-admin",
+			Description:              "Allows admin to update ideas.",
+			DefaultMemberPermissions: &AdminPerms,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "implement",
+					Description: "implement an idea",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Name:        "idea-number",
+							Description: "The number of the idea you wish to implement.",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "Set a reason for the implementation",
+							Required:    false,
+						},
+					},
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "consider",
+					Description: "consider an idea",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Name:        "idea-number",
+							Description: "The number of the idea you wish to consider.",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "Set a reason for the consideration",
+							Required:    false,
+						},
+					},
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "deny",
+					Description: "deny an idea",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Name:        "idea-number",
+							Description: "The number of the idea you wish to deny.",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "Set a reason for the denial",
+							Required:    false,
+						},
+					},
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "approve",
+					Description: "approve an idea",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Name:        "idea-number",
+							Description: "The number of the idea you wish to approve.",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "Set a reason for the approval",
+							Required:    false,
+						},
+					},
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "edit-reason",
+					Description: "change the reason of an idea that has been actioned on",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Name:        "idea-number",
+							Description: "The number of the idea you wish to edit the reason on.",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "The reason text",
+							Required:    true,
+						},
+					},
+				},
+			},
+		},
 		//Training
 		{
 			Name:        "training-request",

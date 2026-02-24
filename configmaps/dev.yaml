@@ -205,16 +205,24 @@ channels:
     - name: Bot Dump
       id: 1148307485904601175
       permissions: []
+    - name: idea-box
+      id: 1148307483002155100
+      permissions: []
+    - name: ideabox-archive
+      id: 1148307487485853707
+      permissions: []
 emojis:
     - name: TPC Reaction
       id: :giveaway:1225560451279097926
 baseurl:
   - name: FCP
-    url: https://flightcrew-beta.thepilotclub.org
+    link: https://flightcrew-beta.thepilotclub.org
   - name: Internal API
-    url: https://api-beta.thepilotclub.org
+    link: https://api-beta.thepilotclub.org
+  - name: Internal API
+    link: https://api.thepilotclub.org
   - name: Leaderboard
-    url: https://mee6.xyz/thepilotclub
+    link: https://mee6.xyz/thepilotclub
 role_rewards:
     - role_name: Frequent Flyer
       role_id: 1148307481290866804
