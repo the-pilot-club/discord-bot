@@ -6,7 +6,9 @@ import (
 	"os"
 	"os/signal"
 	"time"
+	cron_jobs "tpc-discord-bot/cron-jobs"
 	"tpc-discord-bot/handlers"
+	"tpc-discord-bot/internal/cache"
 	"tpc-discord-bot/internal/config"
 	"tpc-discord-bot/util"
 
@@ -35,6 +37,9 @@ func Run() {
 		defer sentry.Flush(2 * time.Second)
 	}
 
+	cache.InitCache()
+	defer cache.CloseCache()
+
 	log.Print("Starting discord-bot-v3")
 	session, err := Session()
 	if err != nil {
@@ -47,6 +52,7 @@ func Run() {
 	AddHandlers(session)
 
 	err = session.Open()
+	go cron_jobs.HandleCronJobs(session)
 	if err != nil {
 		sentry.CaptureException(err)
 		println(err.Error())
@@ -72,7 +78,7 @@ func AddHandlers(s *discordgo.Session) {
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		go config.IntervalReloadConfigs()
-		go handlers.HandleCLientReady(s)
+		go handlers.HandleClientReady(s)
 		//go cron_jobs.HandleCronJobs(s)
 	})
 
@@ -114,4 +120,7 @@ func AddHandlers(s *discordgo.Session) {
 		go handlers.InteractionCreateHandler(s, i)
 	})
 
+	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		go handlers.HandleQuizButton(s, i)
+	})
 }

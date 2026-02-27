@@ -5,7 +5,9 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/go-co-op/gocron/v2"
 	"time"
+	"tpc-discord-bot/cron-jobs/airac"
 	"tpc-discord-bot/cron-jobs/events"
+	"tpc-discord-bot/handlers"
 )
 
 func TimeNYC() time.Time {
@@ -18,41 +20,57 @@ func TimeNYC() time.Time {
 }
 
 func HandleCronJobs(ds *discordgo.Session) {
-
-	s, _ := gocron.NewScheduler()
+	s, err := gocron.NewScheduler()
+	if err != nil {
+		sentry.CaptureException(err)
+		return
+	}
 	defer func() { _ = s.Shutdown() }()
 
-	_, _ = s.NewJob(
-		gocron.CronJob(
-			"* * * * *",
-			false,
-		),
-		gocron.NewTask(
-			func() {
-				go events.EventReminder(ds)
-			},
-		),
+	// Event reminder - runs every minute
+	_, err = s.NewJob(
+		gocron.CronJob("* * * * *", false),
+		gocron.NewTask(func() {
+			go events.EventReminder(ds)
+		}),
 	)
+	if err != nil {
+		sentry.CaptureException(err)
+	}
 
-	_, _ = s.NewJob(
-		gocron.CronJob(
-			"* * * * *",
-			false,
-		),
-		gocron.NewTask(
-			func() {
-				t := TimeNYC()
-				if t.Hour() == 8 && t.Minute() == 52 {
-					//quiz answer from yesterday
-				}
-				if t.Hour() == 9 && t.Minute() == 0 {
-					//quiz question
-				}
-			},
-		),
+	// Send quiz answer at 8:52 AM EST
+	_, err = s.NewJob(
+		gocron.CronJob("52 8 * * *", false),
+		gocron.NewTask(func() {
+			handlers.SendQuizAnswer(ds)
+		}),
 	)
+	if err != nil {
+		sentry.CaptureException(err)
+	}
+
+	// Send quiz question at 9:00 AM EST
+	_, err = s.NewJob(
+		gocron.CronJob("0 9 * * *", false),
+		gocron.NewTask(func() {
+			handlers.SendQuizQuestion(ds)
+		}),
+	)
+	if err != nil {
+		sentry.CaptureException(err)
+	}
+
+	// AIRAC cycle reminder — runs daily at midnight
+	_, err = s.NewJob(
+		gocron.CronJob("0 0 * * *", false),
+		gocron.NewTask(func() {
+			go airac.AiracReminder(ds)
+		}),
+	)
+	if err != nil {
+		sentry.CaptureException(err)
+	}
 
 	s.Start()
 	select {}
-
 }
