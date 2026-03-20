@@ -1,11 +1,16 @@
 package events
 
 import (
-	"github.com/bwmarrin/discordgo"
-	"github.com/getsentry/sentry-go"
+	"context"
+	"fmt"
 	"log"
 	"sort"
+	"strings"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/getsentry/sentry-go"
+	"tpc-discord-bot/internal/cache"
 	"tpc-discord-bot/internal/config"
 )
 
@@ -17,26 +22,127 @@ func EventReminder(s *discordgo.Session) {
 			guildsToRemind = append(guildsToRemind, guild.ID)
 		}
 	}
-	for _, guild := range guildsToRemind {
+	for _, guildID := range guildsToRemind {
 		go func() {
-			g, err := s.GuildScheduledEvents(guild, false)
-			if len(g) == 0 {
-				log.Println("No events scheduled. Skipping.")
-				return
-			}
-			if err != nil {
-				sentry.CaptureException(err)
-			}
-			sort.Slice(g, func(i, j int) bool {
-				return g[i].ScheduledStartTime.Before(g[j].ScheduledStartTime)
-			})
-			ne := g[0]
-			if ne.ScheduledStartTime.Format(time.DateTime) == time.Now().UTC().Add(time.Hour*1).Format(time.DateTime) {
-				// send the ping for events
-
-			}
+			sendEventReminder(s, guildID)
 		}()
+	}
+}
 
+func sendEventReminder(s *discordgo.Session, guildID string) {
+	events, err := s.GuildScheduledEvents(guildID, false)
+	if err != nil {
+		sentry.CaptureException(err)
+		return
+	}
+	if len(events) == 0 {
+		return
 	}
 
+	// Filter to only scheduled events (exclude active/completed/canceled)
+	var scheduled []*discordgo.GuildScheduledEvent
+	for _, e := range events {
+		if e.Status == discordgo.GuildScheduledEventStatusScheduled {
+			scheduled = append(scheduled, e)
+		}
+	}
+	if len(scheduled) == 0 {
+		return
+	}
+
+	// Sort by start time and get the nearest upcoming event
+	sort.Slice(scheduled, func(i, j int) bool {
+		return scheduled[i].ScheduledStartTime.Before(scheduled[j].ScheduledStartTime)
+	})
+	ne := scheduled[0]
+
+	// Check if event starts within 1 hour
+	now := time.Now().UTC()
+	timeUntilEvent := ne.ScheduledStartTime.Sub(now)
+	if timeUntilEvent < 0 || timeUntilEvent > time.Hour {
+		return
+	}
+
+	// Check dedup cache
+	ctx := context.Background()
+	cacheKey := fmt.Sprintf("eventreminder:%s", ne.ID)
+	existing, _ := cache.Get(ctx, cacheKey)
+	if existing == "sent" {
+		return
+	}
+
+	// Get target channel
+	channelID := config.GetChannelId(guildID, "Crew Chat")
+	if channelID == "" {
+		log.Printf("No 'Crew Chat' channel configured for guild %s", guildID)
+		return
+	}
+
+	// Build role pings based on day of week (matching v1/v2 behaviour)
+	groupFlights := config.GetRoleId(guildID, "Group Flights")
+	gaFlights := config.GetRoleId(guildID, "GA Flights")
+	day := ne.ScheduledStartTime.Weekday()
+
+	var pings []string
+	if groupFlights != "" {
+		pings = append(pings, fmt.Sprintf("<@&%s>", groupFlights))
+	}
+	if gaFlights != "" && (day == time.Tuesday || day == time.Wednesday) {
+		pings = append(pings, fmt.Sprintf("<@&%s>", gaFlights))
+	}
+	pingStr := strings.Join(pings, " ")
+
+	// Resolve creator name
+	creatorName := ""
+	if ne.Creator != nil {
+		creatorName = ne.Creator.Username
+	} else if ne.CreatorID != "" {
+		user, err := s.User(ne.CreatorID)
+		if err == nil {
+			creatorName = user.Username
+		}
+	}
+
+	// Build message content matching v1 format
+	eventURL := fmt.Sprintf("https://discord.com/events/%s/%s", guildID, ne.ID)
+	var contentParts []string
+	if pingStr != "" {
+		contentParts = append(contentParts, pingStr)
+	}
+	contentParts = append(contentParts, "**The event is starting in 1 hour. See you there!**")
+	if ne.Description != "" {
+		contentParts = append(contentParts, ne.Description)
+	}
+	if creatorName != "" {
+		contentParts = append(contentParts, fmt.Sprintf("Hosted by %s", creatorName))
+	}
+	contentParts = append(contentParts, eventURL)
+
+	msg := &discordgo.MessageSend{
+		Content: strings.Join(contentParts, "\n\n"),
+	}
+
+	// Add cover image as embed if available
+	if ne.Image != "" {
+		imageURL := fmt.Sprintf("https://cdn.discordapp.com/guild-events/%s/%s.png?size=4096", ne.ID, ne.Image)
+		msg.Embeds = []*discordgo.MessageEmbed{
+			{
+				Image: &discordgo.MessageEmbedImage{
+					URL: imageURL,
+				},
+			},
+		}
+	}
+
+	// Send the reminder
+	_, err = s.ChannelMessageSendComplex(channelID, msg)
+	if err != nil {
+		sentry.CaptureException(err)
+		log.Printf("Failed to send event reminder for '%s': %v", ne.Name, err)
+		return
+	}
+
+	// Mark as sent with 48h TTL
+	_ = cache.Set(ctx, cacheKey, "sent", 48*time.Hour)
+	log.Printf("Event reminder sent for '%s' in guild %s", ne.Name, guildID)
 }
