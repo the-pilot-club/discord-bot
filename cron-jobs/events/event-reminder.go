@@ -78,7 +78,7 @@ func sendEventReminder(s *discordgo.Session, guildID string) {
 		return
 	}
 
-	// Build role pings based on day of week (matching v1/v2 behaviour)
+	// Group flight ping all days, ping GA flights on Tuesday and Wednesday
 	groupFlights := config.GetRoleId(guildID, "Group Flights")
 	gaFlights := config.GetRoleId(guildID, "GA Flights")
 	day := ne.ScheduledStartTime.Weekday()
@@ -92,18 +92,15 @@ func sendEventReminder(s *discordgo.Session, guildID string) {
 	}
 	pingStr := strings.Join(pings, " ")
 
-	// Resolve creator name
-	creatorName := ""
+	// Resolve creator mention
+	creatorMention := ""
 	if ne.Creator != nil {
-		creatorName = ne.Creator.Username
+		creatorMention = fmt.Sprintf("<@%s>", ne.Creator.ID)
 	} else if ne.CreatorID != "" {
-		user, err := s.User(ne.CreatorID)
-		if err == nil {
-			creatorName = user.Username
-		}
+		creatorMention = fmt.Sprintf("<@%s>", ne.CreatorID)
 	}
 
-	// Build message content matching v1 format
+	// Build message content
 	eventURL := fmt.Sprintf("https://discord.com/events/%s/%s", guildID, ne.ID)
 	var contentParts []string
 	if pingStr != "" {
@@ -113,8 +110,8 @@ func sendEventReminder(s *discordgo.Session, guildID string) {
 	if ne.Description != "" {
 		contentParts = append(contentParts, ne.Description)
 	}
-	if creatorName != "" {
-		contentParts = append(contentParts, fmt.Sprintf("Hosted by %s", creatorName))
+	if creatorMention != "" {
+		contentParts = append(contentParts, fmt.Sprintf("Hosted by %s", creatorMention))
 	}
 	contentParts = append(contentParts, eventURL)
 
