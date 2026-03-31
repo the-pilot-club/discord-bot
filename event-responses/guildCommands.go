@@ -50,11 +50,20 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"leaderboard": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go general.HandleLeaderboardCommand(s, i)
 		},
+		"rank": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go general.HandleRankCommand(s, i)
+		},
 		"get-online-members": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go vatsim.GetOnlineMembers(s, i)
 		},
 		"givexp": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go general.HandleGiveXpCommand(s, i)
+		},
+		"removexp": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go general.HandleRemoveXpCommand(s, i)
+		},
+		"set-user-no-xp": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go general.HandleSetUserNoXpCommand(s, i)
 		},
 		"giveaway": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go giveaway.GiveawayMain(s, i)

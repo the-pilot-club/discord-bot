@@ -16,11 +16,12 @@ func genEnvGuild() string {
 }
 
 var (
-	AdminPerms     int64 = discordgo.PermissionAdministrator
-	StaffPerms     int64 = discordgo.PermissionMentionEveryone
-	ModPerms       int64 = discordgo.PermissionBanMembers
-	GuildID              = flag.String("guild", genEnvGuild(), "Test guild ID. If not passed - bot registers commands globally")
-	GlobalCommands       = []*discordgo.ApplicationCommand{
+	AdminPerms     int64   = discordgo.PermissionAdministrator
+	StaffPerms     int64   = discordgo.PermissionMentionEveryone
+	ModPerms       int64   = discordgo.PermissionBanMembers
+	PositiveXpMin  float64 = 1
+	GuildID                = flag.String("guild", genEnvGuild(), "Test guild ID. If not passed - bot registers commands globally")
+	GlobalCommands         = []*discordgo.ApplicationCommand{
 		// fun
 		{
 			Name:        "ping",
@@ -186,6 +187,18 @@ var (
 			Description: "The link to find our leaderboard!",
 		},
 		{
+			Name:        "rank",
+			Description: "Displays your leaderboard rank and leveling progress",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "member",
+					Description: "The member whose rank you want to check",
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Required:    false,
+				},
+			},
+		},
+		{
 			Name:        "member-count",
 			Description: "Displays Number of Members in the Club",
 		},
@@ -233,6 +246,46 @@ var (
 					Type:        discordgo.ApplicationCommandOptionInteger,
 					Name:        "amount",
 					Description: "Amount of XP to give as a whole number - no partial gimmies here!",
+					Required:    true,
+					MinValue:    &PositiveXpMin,
+				},
+			},
+		},
+		{
+			Name:                     "removexp",
+			Description:              "Remove XP from a user",
+			DefaultMemberPermissions: &StaffPerms,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Name:        "user",
+					Description: "The user to remove XP from",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Name:        "amount",
+					Description: "Amount of XP to remove as a whole number",
+					Required:    true,
+					MinValue:    &PositiveXpMin,
+				},
+			},
+		},
+		{
+			Name:                     "set-user-no-xp",
+			Description:              "Enable or disable XP gain for a user",
+			DefaultMemberPermissions: &StaffPerms,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Name:        "user",
+					Description: "The user whose XP eligibility you want to update",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "enabled",
+					Description: "Set to true to disable XP gain for this user",
 					Required:    true,
 				},
 			},

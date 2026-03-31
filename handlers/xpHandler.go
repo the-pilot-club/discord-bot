@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/getsentry/sentry-go"
@@ -48,21 +49,38 @@ func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Find or create user
 	user, err := controller.FindUser(m.Author.ID, m.GuildID)
 	if err != nil {
-		// Add user if not found
-		err = controller.AddUser(m.Author.ID, m.GuildID)
-		if err != nil {
+		if !leaderboardUserNotFound(err) {
 			return
+		}
+
+		xpPerMessage := rand.Intn(15) + 10
+		initialProgress := leveling.ProgressFromTotalXp(int(float64(xpPerMessage) * levelingConfig.XpRate))
+
+		err = controller.CreateUserRecord(controllers.UserCreate{
+			GuildID:         m.GuildID,
+			UserID:          m.Author.ID,
+			MessageCount:    1,
+			Xp:              initialProgress.CurrentXp,
+			TotalXp:         initialProgress.TotalXp,
+			LevelXp:         initialProgress.NextLevelXp,
+			Level:           initialProgress.Level,
+			Rank:            0,
+			NoXp:            false,
+			MessageLastSent: time.Now().Add(time.Minute).UnixMilli(),
+		}, m.GuildID)
+		if err != nil {
+			sentry.CaptureException(err)
 		}
 		return
 	}
 
 	// Check if user has noXp flag
-	if noXp, ok := user["noXp"].(bool); ok && noXp {
+	if leaderboardOptionalBool(user["noXp"]) {
 		return
 	}
 
 	//Add a check to see if member has sent a message in the last minute
-	if processLastMessageSent(user["messageLastSent"].(string)) {
+	if processLastMessageSent(fmt.Sprint(user["messageLastSent"])) {
 		return
 	}
 
@@ -71,43 +89,56 @@ func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 	xpToAssign := float64(xpPerMessage) * levelingConfig.XpRate
 
 	// Get current user stats
-	currentLevel := int(user["level"].(float64))
-	currentXp := int(user["xp"].(float64))
-	totalXp := int(user["totalXp"].(float64))
-	messageCount := int(user["messageCount"].(float64))
+	currentLevel, err := leaderboardInt(user, "level")
+	if err != nil {
+		sentry.CaptureException(err)
+		return
+	}
 
-	// Calculate new level
-	newLevel, requiredXp := leveling.CalculateUserLevel(currentLevel, currentXp+int(xpToAssign))
+	currentXp, err := leaderboardInt(user, "xp")
+	if err != nil {
+		sentry.CaptureException(err)
+		return
+	}
 
-	if newLevel > currentLevel {
-		// Level up
-		content := fmt.Sprintf("Congrats <@%v>, you just advanced to TPC **level %v **!", m.Author.ID, newLevel)
+	totalXp, err := leaderboardInt(user, "totalXp")
+	if err != nil {
+		sentry.CaptureException(err)
+		return
+	}
+
+	messageCount, err := leaderboardInt(user, "messageCount")
+	if err != nil {
+		sentry.CaptureException(err)
+		return
+	}
+
+	change := leveling.ApplyXpDelta(currentLevel, currentXp, totalXp, int(xpToAssign))
+
+	err = controller.UpdateUserPoints(
+		m.Author.ID,
+		change.After.Level,
+		messageCount+1,
+		change.After.CurrentXp,
+		change.After.TotalXp,
+		change.After.NextLevelXp,
+		time.Now().Add(time.Minute).UnixMilli(),
+		m.GuildID,
+	)
+	if err != nil {
+		sentry.CaptureException(err)
+		return
+	}
+
+	if change.After.Level > change.Before.Level {
+		content := fmt.Sprintf("Congrats <@%v>, you just advanced to TPC **level %v **!", m.Author.ID, change.After.Level)
 		_, err = s.ChannelMessageSend(m.ChannelID, content)
 		if err != nil {
 			return
 		}
 
-		err = controller.UpdateUserLevel(m.Author.ID, newLevel, messageCount+1, 1, requiredXp, m.GuildID)
-		if err != nil {
-			return
-		}
-
-		// Check and assign role rewards
-		leveling.CheckRoleRewards(s, m.GuildID, m.Author.ID, controller, newLevel)
-		return
+		leveling.SyncRoleRewards(s, m.GuildID, m.Author.ID, controller, change.After.Level)
 	}
-
-	// Update points
-	err = controller.UpdateUserPoints(
-		m.Author.ID,
-		newLevel,
-		messageCount+1,
-		currentXp+int(xpToAssign),
-		totalXp+int(xpToAssign),
-		requiredXp,
-		time.Now().Add(time.Minute).UnixMilli(),
-		m.GuildID,
-	)
 }
 
 func processLastMessageSent(m string) bool {
@@ -121,4 +152,51 @@ func processLastMessageSent(m string) bool {
 		return true
 	}
 	return false
+}
+
+func leaderboardInt(user map[string]interface{}, key string) (int, error) {
+	value, ok := user[key]
+	if !ok || value == nil {
+		return 0, fmt.Errorf("leaderboard field %q missing", key)
+	}
+
+	switch v := value.(type) {
+	case float64:
+		return int(v), nil
+	case int:
+		return v, nil
+	case int64:
+		return int(v), nil
+	case string:
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return 0, fmt.Errorf("leaderboard field %q is not numeric: %w", key, err)
+		}
+		return i, nil
+	default:
+		return 0, fmt.Errorf("leaderboard field %q has unsupported type %T", key, value)
+	}
+}
+
+func leaderboardOptionalBool(value interface{}) bool {
+	if value == nil {
+		return false
+	}
+
+	switch v := value.(type) {
+	case bool:
+		return v
+	case string:
+		parsed, err := strconv.ParseBool(v)
+		if err != nil {
+			return false
+		}
+		return parsed
+	default:
+		return false
+	}
+}
+
+func leaderboardUserNotFound(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "404")
 }

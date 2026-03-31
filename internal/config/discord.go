@@ -65,7 +65,16 @@ type EmojiConfig struct {
 type BaseUrls struct {
 	Name string `yaml:"name"`
 	Link string `yaml:"link"`
+	URL  string `yaml:"url"`
 	Key  string `yaml:"key"`
+}
+
+func (b BaseUrls) Value() string {
+	if b.Link != "" {
+		return b.Link
+	}
+
+	return b.URL
 }
 
 type RoleReward struct {
@@ -202,7 +211,7 @@ func GetBaseUrl(id string, name string) string {
 	var BaseUrl string
 	for i := 0; i < len(cfg.BaseUrl); i++ {
 		if cfg.BaseUrl[i].Name == name {
-			BaseUrl = cfg.BaseUrl[i].Link
+			BaseUrl = cfg.BaseUrl[i].Value()
 		}
 	}
 	return BaseUrl
@@ -214,15 +223,27 @@ func GetInternalApiKey(id string) string {
 
 // checks if the channel has the XP permission.
 func ValidXpChannel(id string, channel *discordgo.Channel) bool {
-	channelName := channel.Name
 	cfg := configs[id]
 
 	if cfg.Channels == nil {
 		return false
 	}
+
+	if channel == nil {
+		return false
+	}
+
 	// Find the channel
 	for i := 0; i < len(cfg.Channels); i++ {
-		if strings.EqualFold(cfg.Channels[i].Name, channelName) {
+		if cfg.Channels[i].Id == channel.ID {
+			// Check the permission
+			return GetBooleanPermissionValue(GetPermissionValue(cfg.Channels[i], "xp"))
+		}
+	}
+
+	normalizedChannelName := normalizeChannelName(channel.Name)
+	for i := 0; i < len(cfg.Channels); i++ {
+		if normalizeChannelName(cfg.Channels[i].Name) == normalizedChannelName {
 			// Check the permission
 			return GetBooleanPermissionValue(GetPermissionValue(cfg.Channels[i], "xp"))
 		}
@@ -247,6 +268,11 @@ func GetPermissionValue(channel ChannelConfig, permissionName string) string {
 		}
 	}
 	return "" // empty string if not found
+}
+
+func normalizeChannelName(name string) string {
+	replacer := strings.NewReplacer(" ", "-", "_", "-")
+	return strings.ToLower(replacer.Replace(name))
 }
 
 func GetRatingsRoles(id string) []RatingRolesConfig {
