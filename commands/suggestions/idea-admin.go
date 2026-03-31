@@ -79,7 +79,7 @@ func IdeaAdminCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			return
 		}
 
-		reply(i, s, "Idea set as implemented and archived")
+		reply(i, s, "Idea marked as implemented and moved to the archive.")
 
 	case "deny":
 		body, err := api.patchIdea(i.GuildID, ideaNumber, setStatus(4))
@@ -94,7 +94,7 @@ func IdeaAdminCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			return
 		}
 
-		reply(i, s, "Idea set as denied and archived")
+		reply(i, s, "Idea marked as denied and moved to the archive.")
 
 	case "consider":
 		body, err := api.patchIdea(i.GuildID, ideaNumber, setStatus(1))
@@ -103,13 +103,13 @@ func IdeaAdminCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			return
 		}
 
-		if err := updateMessageFlow(s, i, ideaNumber, body, "Considered", 0xF8DE7E, reason, true); err != nil {
+		if err := updateMessageFlow(s, i, ideaNumber, body, reason, false); err != nil {
 			sentry.CaptureException(err)
 			reply(i, s, err.Error())
 			return
 		}
 
-		reply(i, s, "Idea set as considered")
+		reply(i, s, "Idea marked as under review.")
 
 	case "approve":
 		body, err := api.patchIdea(i.GuildID, ideaNumber, setStatus(2))
@@ -118,13 +118,13 @@ func IdeaAdminCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			return
 		}
 
-		if err := updateMessageFlow(s, i, ideaNumber, body, "Approved", 0x55F861, reason, false); err != nil {
+		if err := updateMessageFlow(s, i, ideaNumber, body, reason, false); err != nil {
 			sentry.CaptureException(err)
 			reply(i, s, err.Error())
 			return
 		}
 
-		reply(i, s, "Idea approved")
+		reply(i, s, "Idea marked as approved.")
 
 	case "edit-reason":
 		if reason == "" {
@@ -141,13 +141,13 @@ func IdeaAdminCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			return
 		}
 
-		if err := updateMessageFlow(s, i, ideaNumber, body, statusText(body.StatusID), statusColor(body.StatusID), reason, false); err != nil {
+		if err := updateMessageFlow(s, i, ideaNumber, body, reason, true); err != nil {
 			sentry.CaptureException(err)
 			reply(i, s, err.Error())
 			return
 		}
 
-		reply(i, s, "Idea reason updated")
+		reply(i, s, "Idea staff note updated.")
 
 	default:
 		reply(i, s, "Unknown subcommand.")
@@ -170,17 +170,9 @@ func archiveFlow(
 	}
 
 	threadID := findThread(s, i.GuildID, ideaNumber, body.ChannelID)
-	if threadID != "" {
-		msg := ""
-		if implemented {
-			msg = fmt.Sprintf("<@%s> we have implemented your idea!", body.DiscordID)
-		} else {
-			msg = fmt.Sprintf("<@%s> we have denied your idea.", body.DiscordID)
-		}
-		if reason != "" {
-			msg += "\n\n``" + reason + "``"
-		}
-		_, _ = s.ChannelMessageSend(threadID, msg)
+	statusID := 4
+	if implemented {
+		statusID = 3
 	}
 
 	_ = s.ChannelMessageDelete(body.ChannelID, body.MessageID)
@@ -190,25 +182,23 @@ func archiveFlow(
 		return fmt.Errorf("missing ideabox-archive channel")
 	}
 
-	title := "Denied"
-	color := 0xD50028
-	if implemented {
-		title = "Implemented"
-		color = 0x37B6FF
-	}
-
 	embed := ideaEmbed(
-		fmt.Sprintf("Idea #%s **%s**", body.ID, title),
-		oldMsg.Embeds[0].Author.Name,
-		oldMsg.Embeds[0].Author.IconURL,
+		body.ID,
+		statusID,
+		ideaAuthorName(oldMsg),
+		ideaAuthorIcon(oldMsg),
 		body.IdeaText,
-		color,
-		"Reason",
+		statusColor(statusID),
+		"Staff Note",
 		reason,
 	)
 
 	archivedMsg, err := s.ChannelMessageSendEmbed(archiveID, embed)
 	if err != nil {
+		return err
+	}
+
+	if err := sendIdeaThreadUpdate(s, threadID, body.DiscordID, statusThreadUpdate(statusID, reason, false)); err != nil {
 		return err
 	}
 
@@ -225,10 +215,8 @@ func updateMessageFlow(
 	i *discordgo.InteractionCreate,
 	ideaNumber int,
 	body *ideaAPIModel,
-	status string,
-	color int,
 	reason string,
-	consider bool,
+	reasonUpdated bool,
 ) error {
 
 	oldMsg, err := s.ChannelMessage(body.ChannelID, body.MessageID)
@@ -237,23 +225,20 @@ func updateMessageFlow(
 	}
 
 	threadID := findThread(s, i.GuildID, ideaNumber, body.ChannelID)
-	if threadID != "" {
-		msg := fmt.Sprintf("<@%s> your idea has been %s.", body.DiscordID, strings.ToLower(status))
-		if reason != "" {
-			msg += "\n\n``" + reason + "``"
-		}
-		_, _ = s.ChannelMessageSend(threadID, msg)
-	}
-
 	embed := ideaEmbed(
-		fmt.Sprintf("Idea #%s **%s**", body.ID, status),
-		oldMsg.Embeds[0].Author.Name,
-		oldMsg.Embeds[0].Author.IconURL,
+		body.ID,
+		body.StatusID,
+		ideaAuthorName(oldMsg),
+		ideaAuthorIcon(oldMsg),
 		body.IdeaText,
-		color,
-		"Reason",
+		statusColor(body.StatusID),
+		"Staff Note",
 		reason,
 	)
+
+	if err := sendIdeaThreadUpdate(s, threadID, body.DiscordID, statusThreadUpdate(body.StatusID, reason, reasonUpdated)); err != nil {
+		return err
+	}
 
 	_, err = s.ChannelMessageEditComplex(&discordgo.MessageEdit{
 		ID:      body.MessageID,
@@ -287,10 +272,87 @@ func reply(i *discordgo.InteractionCreate, s *discordgo.Session, msg string) {
 	})
 }
 
+func ideaAuthorName(msg *discordgo.Message) string {
+	if msg == nil || len(msg.Embeds) == 0 || msg.Embeds[0].Author == nil || strings.TrimSpace(msg.Embeds[0].Author.Name) == "" {
+		return "Unknown"
+	}
+	return strings.TrimPrefix(msg.Embeds[0].Author.Name, "Submitted by ")
+}
+
+func ideaAuthorIcon(msg *discordgo.Message) string {
+	if msg == nil || len(msg.Embeds) == 0 || msg.Embeds[0].Author == nil {
+		return ""
+	}
+	return msg.Embeds[0].Author.IconURL
+}
+
+func sendIdeaThreadUpdate(s *discordgo.Session, threadID, discordID, update string) error {
+	if threadID == "" {
+		return nil
+	}
+
+	content := fmt.Sprintf("<@%s> %s", discordID, update)
+	_, err := s.ChannelMessageSend(threadID, content)
+	return err
+}
+
+func statusThreadUpdate(statusID int, note string, noteUpdated bool) string {
+	switch {
+	case noteUpdated:
+		return appendStaffNote(
+			"Update on your suggestion: the staff note has been updated.",
+			note,
+		)
+	case statusID == 1:
+		return appendStaffNote(
+			"Update on your suggestion: it is now under review. The team is actively discussing it and deciding whether to move forward.",
+			note,
+		)
+	case statusID == 2:
+		return appendStaffNote(
+			"Update on your suggestion: it has been approved! We plan to move forward with it, although implementation may happen later.",
+			note,
+		)
+	case statusID == 3:
+		return appendStaffNote(
+			"Update on your suggestion: it has been implemented. The original post has been moved to the archive.",
+			note,
+		)
+	case statusID == 4:
+		return appendStaffNote(
+			"Update on your suggestion: it has been denied. The original post has been moved to the archive.",
+			note,
+		)
+	default:
+		return appendStaffNote(
+			"Update on your suggestion: there is a new status update.",
+			note,
+		)
+	}
+}
+
+func appendStaffNote(msg, note string) string {
+	note = strings.TrimSpace(note)
+	if note == "" {
+		return msg
+	}
+	return msg + "\n\nStaff note:\n" + note
+}
+
+func statusSummary(id int) string {
+	return map[int]string{
+		0: "The idea has been submitted and is waiting for staff review. We may ask follow-up questions in the thread before taking action.",
+		1: "The team is actively reviewing the idea and deciding whether to move forward. This status does not mean the idea has been approved yet.",
+		2: "The team has decided to move forward with the idea. It may still take time before the work is fully implemented.",
+		3: "The idea has been completed and moved to the archive.",
+		4: "The team decided not to move forward with the idea, and the post has been moved to the archive.",
+	}[id]
+}
+
 func statusText(id int) string {
 	return map[int]string{
 		0: "Submitted",
-		1: "Considered",
+		1: "Under Review",
 		2: "Approved",
 		3: "Implemented",
 		4: "Denied",

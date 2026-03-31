@@ -241,36 +241,36 @@ var (
 		// Suggestions
 		{
 			Name:        "idea",
-			Description: "Give us an idea that would make the club better",
+			Description: "Share an idea that would improve the club",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
 					Name:        "your-idea",
-					Description: "Tell us your great idea",
+					Description: "Describe your idea",
 					Required:    true,
 				},
 			},
 		},
 		{
 			Name:                     "idea-admin",
-			Description:              "Allows admin to update ideas.",
+			Description:              "Manage idea statuses and staff notes.",
 			DefaultMemberPermissions: &AdminPerms,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 					Name:        "implement",
-					Description: "implement an idea",
+					Description: "Mark an idea as implemented",
 					Options: []*discordgo.ApplicationCommandOption{
 						{
 							Type:        discordgo.ApplicationCommandOptionInteger,
 							Name:        "idea-number",
-							Description: "The number of the idea you wish to implement.",
+							Description: "The idea number to mark as implemented",
 							Required:    true,
 						},
 						{
 							Type:        discordgo.ApplicationCommandOptionString,
 							Name:        "reason",
-							Description: "Set a reason for the implementation",
+							Description: "An optional staff note about the implementation",
 							Required:    false,
 						},
 					},
@@ -278,18 +278,18 @@ var (
 				{
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 					Name:        "consider",
-					Description: "consider an idea",
+					Description: "Mark an idea as under review",
 					Options: []*discordgo.ApplicationCommandOption{
 						{
 							Type:        discordgo.ApplicationCommandOptionInteger,
 							Name:        "idea-number",
-							Description: "The number of the idea you wish to consider.",
+							Description: "The idea number to mark as under review",
 							Required:    true,
 						},
 						{
 							Type:        discordgo.ApplicationCommandOptionString,
 							Name:        "reason",
-							Description: "Set a reason for the consideration",
+							Description: "An optional staff note about the review",
 							Required:    false,
 						},
 					},
@@ -297,18 +297,18 @@ var (
 				{
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 					Name:        "deny",
-					Description: "deny an idea",
+					Description: "Mark an idea as denied",
 					Options: []*discordgo.ApplicationCommandOption{
 						{
 							Type:        discordgo.ApplicationCommandOptionInteger,
 							Name:        "idea-number",
-							Description: "The number of the idea you wish to deny.",
+							Description: "The idea number to mark as denied",
 							Required:    true,
 						},
 						{
 							Type:        discordgo.ApplicationCommandOptionString,
 							Name:        "reason",
-							Description: "Set a reason for the denial",
+							Description: "An optional staff note about the denial",
 							Required:    false,
 						},
 					},
@@ -316,18 +316,18 @@ var (
 				{
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 					Name:        "approve",
-					Description: "approve an idea",
+					Description: "Mark an idea as approved",
 					Options: []*discordgo.ApplicationCommandOption{
 						{
 							Type:        discordgo.ApplicationCommandOptionInteger,
 							Name:        "idea-number",
-							Description: "The number of the idea you wish to approve.",
+							Description: "The idea number to mark as approved",
 							Required:    true,
 						},
 						{
 							Type:        discordgo.ApplicationCommandOptionString,
 							Name:        "reason",
-							Description: "Set a reason for the approval",
+							Description: "An optional staff note about the approval",
 							Required:    false,
 						},
 					},
@@ -335,18 +335,18 @@ var (
 				{
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 					Name:        "edit-reason",
-					Description: "change the reason of an idea that has been actioned on",
+					Description: "Update the staff note for an idea",
 					Options: []*discordgo.ApplicationCommandOption{
 						{
 							Type:        discordgo.ApplicationCommandOptionInteger,
 							Name:        "idea-number",
-							Description: "The number of the idea you wish to edit the reason on.",
+							Description: "The idea number whose staff note you want to update",
 							Required:    true,
 						},
 						{
 							Type:        discordgo.ApplicationCommandOptionString,
 							Name:        "reason",
-							Description: "The reason text",
+							Description: "The new staff note",
 							Required:    true,
 						},
 					},

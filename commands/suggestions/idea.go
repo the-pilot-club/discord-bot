@@ -38,7 +38,7 @@ type ideaAPIModel struct {
 	Reason    string `json:"reason"`
 	ChannelID string `json:"channelId"`
 	MessageID string `json:"messageId"`
-	Detail any `json:"detail"`
+	Detail    any    `json:"detail"`
 }
 
 type ideaAPIClient struct{}
@@ -153,6 +153,7 @@ func (c *ideaAPIClient) patchIdea(guildID string, ideaNumber int, req updateIdea
 	}
 	return &out, nil
 }
+
 // helper
 func ptrString(v string) *string { return &v }
 
@@ -166,26 +167,39 @@ func displayName(m *discordgo.Member) string {
 	return m.User.Username
 }
 
-func ideaEmbed(title, authorName, authorIconURL, text string, color int, reasonLabel, reason string) *discordgo.MessageEmbed {
+func ideaEmbed(id string, statusID int, authorName, authorIconURL, text string, color int, detailLabel, detail string) *discordgo.MessageEmbed {
+	status := statusText(statusID)
+	fields := []*discordgo.MessageEmbedField{{
+		Name:   "Current Status",
+		Value:  status,
+		Inline: true,
+	}}
+
+	fields = append(fields, &discordgo.MessageEmbedField{
+		Name:  "What This Means",
+		Value: statusSummary(statusID),
+	})
+
+	if strings.TrimSpace(detail) != "" && strings.TrimSpace(detailLabel) != "" {
+		fields = append(fields, &discordgo.MessageEmbedField{
+			Name:  detailLabel,
+			Value: detail,
+		})
+	}
+
 	embed := &discordgo.MessageEmbed{
-		Title:       title,
+		Title:       fmt.Sprintf("Idea #%s", id),
 		Description: text,
 		Color:       color,
 		Author: &discordgo.MessageEmbedAuthor{
-			Name:    authorName,
+			Name:    fmt.Sprintf("Submitted by %s", authorName),
 			IconURL: authorIconURL,
 		},
 		Footer: &discordgo.MessageEmbedFooter{
-			Text:    "Made by TPC Dev Team",
+			Text:    "TPC Suggestion Tracker",
 			IconURL: "https://static1.squarespace.com/static/614689d3918044012d2ac1b4/t/616ff36761fabc72642806e3/1634726781251/TPC_FullColor_TransparentBg_1280x1024_72dpi.png",
 		},
-	}
-
-	if strings.TrimSpace(reason) != "" && strings.TrimSpace(reasonLabel) != "" {
-		embed.Fields = []*discordgo.MessageEmbedField{{
-			Name:  reasonLabel,
-			Value: reason,
-		}}
+		Fields: fields,
 	}
 
 	return embed
@@ -261,7 +275,8 @@ func IdeaCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	embed := ideaEmbed(
-		fmt.Sprintf("Idea #%s", created.ID),
+		created.ID,
+		0,
 		author,
 		authorIcon,
 		text,
@@ -284,9 +299,13 @@ func IdeaCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	threadName := fmt.Sprintf("Idea #%s", created.ID)
 	if thread, threadErr := startThreadFromMessage(s, msg.ChannelID, msg.ID, threadName); threadErr == nil {
-		_, _ = s.ChannelMessageSend(thread.ID,
-			fmt.Sprintf("<@%s> your idea has been submitted. If we have questions or thoughts, we will send them here. Thank you for your idea!",
-				i.Member.User.ID))
+		_, _ = s.ChannelMessageSend(
+			thread.ID,
+			fmt.Sprintf(
+				"<@%s> Your idea has been submitted. We will use this thread for follow-up questions and status updates.",
+				i.Member.User.ID,
+			),
+		)
 	} else {
 		sentry.CaptureException(threadErr)
 	}

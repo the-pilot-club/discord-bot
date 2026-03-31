@@ -65,7 +65,15 @@ type EmojiConfig struct {
 type BaseUrls struct {
 	Name string `yaml:"name"`
 	Link string `yaml:"link"`
+	URL  string `yaml:"url"`
 	Key  string `yaml:"key"`
+}
+
+func (b BaseUrls) Value() string {
+	if strings.TrimSpace(b.Link) != "" {
+		return b.Link
+	}
+	return b.URL
 }
 
 type RoleReward struct {
@@ -202,7 +210,7 @@ func GetBaseUrl(id string, name string) string {
 	var BaseUrl string
 	for i := 0; i < len(cfg.BaseUrl); i++ {
 		if cfg.BaseUrl[i].Name == name {
-			BaseUrl = cfg.BaseUrl[i].Link
+			BaseUrl = cfg.BaseUrl[i].Value()
 		}
 	}
 	return BaseUrl
