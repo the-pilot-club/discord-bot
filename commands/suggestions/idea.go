@@ -43,6 +43,8 @@ type ideaAPIModel struct {
 
 type ideaAPIClient struct{}
 
+const ideaSubmitErrorMessage = "Something went wrong submitting your idea. Please try again later."
+
 func ideaIDToInt(id string) (int, error) {
 	id = strings.TrimSpace(id)
 	if id == "" {
@@ -249,13 +251,8 @@ func IdeaCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	created, err := api.createIdea(i.GuildID, i.Member.User.ID, text)
 	if err != nil {
 		sentry.CaptureException(err)
-
-		msg := "Submit failed: " + err.Error()
-		if len(msg) > 1800 {
-			msg = msg[:1800]
-		}
 		_, _ = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
-			Content: ptrString(msg),
+			Content: ptrString(ideaSubmitErrorMessage),
 		})
 		return
 	}

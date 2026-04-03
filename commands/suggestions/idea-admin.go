@@ -3,11 +3,17 @@ package suggestions
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/getsentry/sentry-go"
 
 	"tpc-discord-bot/internal/config"
+)
+
+const (
+	ideaAdminErrorMessage  = "Something went wrong updating the idea. Please try again later."
+	archivedThreadPageSize = 100
 )
 
 func IdeaAdminCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -68,14 +74,16 @@ func IdeaAdminCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	case "implement":
 		body, err := api.patchIdea(i.GuildID, ideaNumber, setStatus(3))
+		if err != nil {
+			sentry.CaptureException(err)
+		}
 		if err != nil || body == nil || body.Detail != nil {
 			reply(i, s, "That idea does not exist or the API returned an error.")
 			return
 		}
 
 		if err := archiveFlow(s, i, api, ideaNumber, body, true, reason); err != nil {
-			sentry.CaptureException(err)
-			reply(i, s, err.Error())
+			replyIdeaAdminError(i, s, err)
 			return
 		}
 
@@ -83,14 +91,16 @@ func IdeaAdminCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	case "deny":
 		body, err := api.patchIdea(i.GuildID, ideaNumber, setStatus(4))
+		if err != nil {
+			sentry.CaptureException(err)
+		}
 		if err != nil || body == nil || body.Detail != nil {
 			reply(i, s, "That idea does not exist or the API returned an error.")
 			return
 		}
 
 		if err := archiveFlow(s, i, api, ideaNumber, body, false, reason); err != nil {
-			sentry.CaptureException(err)
-			reply(i, s, err.Error())
+			replyIdeaAdminError(i, s, err)
 			return
 		}
 
@@ -98,14 +108,16 @@ func IdeaAdminCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	case "consider":
 		body, err := api.patchIdea(i.GuildID, ideaNumber, setStatus(1))
+		if err != nil {
+			sentry.CaptureException(err)
+		}
 		if err != nil || body == nil || body.Detail != nil {
 			reply(i, s, "That idea does not exist or the API returned an error.")
 			return
 		}
 
 		if err := updateMessageFlow(s, i, ideaNumber, body, reason, false); err != nil {
-			sentry.CaptureException(err)
-			reply(i, s, err.Error())
+			replyIdeaAdminError(i, s, err)
 			return
 		}
 
@@ -113,14 +125,16 @@ func IdeaAdminCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	case "approve":
 		body, err := api.patchIdea(i.GuildID, ideaNumber, setStatus(2))
+		if err != nil {
+			sentry.CaptureException(err)
+		}
 		if err != nil || body == nil || body.Detail != nil {
 			reply(i, s, "That idea does not exist or the API returned an error.")
 			return
 		}
 
 		if err := updateMessageFlow(s, i, ideaNumber, body, reason, false); err != nil {
-			sentry.CaptureException(err)
-			reply(i, s, err.Error())
+			replyIdeaAdminError(i, s, err)
 			return
 		}
 
@@ -136,14 +150,16 @@ func IdeaAdminCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			Reason:       reason,
 			ActionUserID: actionUserID,
 		})
+		if err != nil {
+			sentry.CaptureException(err)
+		}
 		if err != nil || body == nil || body.Detail != nil {
 			reply(i, s, "That idea does not exist or the API returned an error.")
 			return
 		}
 
 		if err := updateMessageFlow(s, i, ideaNumber, body, reason, true); err != nil {
-			sentry.CaptureException(err)
-			reply(i, s, err.Error())
+			replyIdeaAdminError(i, s, err)
 			return
 		}
 
@@ -175,8 +191,6 @@ func archiveFlow(
 		statusID = 3
 	}
 
-	_ = s.ChannelMessageDelete(body.ChannelID, body.MessageID)
-
 	archiveID := config.GetChannelId(i.GuildID, "ideabox-archive")
 	if archiveID == "" {
 		return fmt.Errorf("missing ideabox-archive channel")
@@ -193,21 +207,70 @@ func archiveFlow(
 		reason,
 	)
 
-	archivedMsg, err := s.ChannelMessageSendEmbed(archiveID, embed)
+	if err := createArchiveAndUpdateRecord(
+		func() (*discordgo.Message, error) {
+			return s.ChannelMessageSendEmbed(archiveID, embed)
+		},
+		func() error {
+			if threadID == "" {
+				sentry.CaptureMessage(fmt.Sprintf("suggestion thread not found for idea %d in guild %s", ideaNumber, i.GuildID))
+				return nil
+			}
+			return sendIdeaThreadUpdate(s, threadID, body.DiscordID, statusThreadUpdate(statusID, reason, false))
+		},
+		func(archivedMsg *discordgo.Message) error {
+			_, err := api.patchIdea(i.GuildID, ideaNumber, updateIdeaRequest{
+				ChannelID: archivedMsg.ChannelID,
+				MessageID: archivedMsg.ID,
+			})
+			return err
+		},
+		func(archivedMsg *discordgo.Message) error {
+			return s.ChannelMessageDelete(archivedMsg.ChannelID, archivedMsg.ID)
+		},
+	); err != nil {
+		return err
+	}
+
+	if err := s.ChannelMessageDelete(body.ChannelID, body.MessageID); err != nil {
+		sentry.CaptureException(err)
+	}
+
+	return nil
+}
+
+func createArchiveAndUpdateRecord(
+	createArchive func() (*discordgo.Message, error),
+	notifyThread func() error,
+	updateRecord func(*discordgo.Message) error,
+	cleanupArchive func(*discordgo.Message) error,
+) error {
+	archivedMsg, err := createArchive()
 	if err != nil {
 		return err
 	}
 
-	if err := sendIdeaThreadUpdate(s, threadID, body.DiscordID, statusThreadUpdate(statusID, reason, false)); err != nil {
-		return err
+	if err := notifyThread(); err != nil {
+		return rollbackArchiveMessage(archivedMsg, cleanupArchive, err)
 	}
 
-	_, err = api.patchIdea(i.GuildID, ideaNumber, updateIdeaRequest{
-		ChannelID: archivedMsg.ChannelID,
-		MessageID: archivedMsg.ID,
-	})
+	if err := updateRecord(archivedMsg); err != nil {
+		return rollbackArchiveMessage(archivedMsg, cleanupArchive, err)
+	}
 
-	return err
+	return nil
+}
+
+func rollbackArchiveMessage(archivedMsg *discordgo.Message, cleanupArchive func(*discordgo.Message) error, cause error) error {
+	if archivedMsg == nil || cleanupArchive == nil {
+		return cause
+	}
+
+	if err := cleanupArchive(archivedMsg); err != nil {
+		return fmt.Errorf("%w; failed to clean up archive message: %v", cause, err)
+	}
+
+	return cause
 }
 
 func updateMessageFlow(
@@ -236,7 +299,9 @@ func updateMessageFlow(
 		reason,
 	)
 
-	if err := sendIdeaThreadUpdate(s, threadID, body.DiscordID, statusThreadUpdate(body.StatusID, reason, reasonUpdated)); err != nil {
+	if threadID == "" {
+		sentry.CaptureMessage(fmt.Sprintf("suggestion thread not found for idea %d in guild %s", ideaNumber, i.GuildID))
+	} else if err := sendIdeaThreadUpdate(s, threadID, body.DiscordID, statusThreadUpdate(body.StatusID, reason, reasonUpdated)); err != nil {
 		return err
 	}
 
@@ -251,19 +316,115 @@ func updateMessageFlow(
 
 func findThread(s *discordgo.Session, guildID string, ideaNumber int, parentID string) string {
 	expected := fmt.Sprintf("Idea #%d", ideaNumber)
+	parentIDs := ideaThreadParentIDs(parentID, config.GetChannelId(guildID, "idea-box"))
 
 	threads, err := s.GuildThreadsActive(guildID)
 	if err != nil {
-		return ""
+		sentry.CaptureException(err)
+	} else if threadID := matchIdeaThreadID(threads.Threads, expected, parentIDs); threadID != "" {
+		return threadID
 	}
 
-	for _, th := range threads.Threads {
-		if th.ParentID == parentID && th.Name == expected {
+	for _, candidateParentID := range parentIDs {
+		threadID, err := findArchivedIdeaThreadID(func(before *time.Time) (*discordgo.ThreadsList, error) {
+			return s.ThreadsArchived(candidateParentID, before, archivedThreadPageSize)
+		}, candidateParentID, expected)
+		if err != nil {
+			sentry.CaptureException(err)
+			continue
+		}
+		if threadID != "" {
+			return threadID
+		}
+	}
+
+	return ""
+}
+
+func ideaThreadParentIDs(parentIDs ...string) []string {
+	seen := make(map[string]struct{}, len(parentIDs))
+	result := make([]string, 0, len(parentIDs))
+
+	for _, parentID := range parentIDs {
+		parentID = strings.TrimSpace(parentID)
+		if parentID == "" {
+			continue
+		}
+		if _, ok := seen[parentID]; ok {
+			continue
+		}
+		seen[parentID] = struct{}{}
+		result = append(result, parentID)
+	}
+
+	return result
+}
+
+func matchIdeaThreadID(threads []*discordgo.Channel, expected string, parentIDs []string) string {
+	allowedParents := make(map[string]struct{}, len(parentIDs))
+	for _, parentID := range parentIDs {
+		allowedParents[parentID] = struct{}{}
+	}
+
+	for _, th := range threads {
+		if th == nil || th.Name != expected {
+			continue
+		}
+		if len(allowedParents) == 0 {
+			return th.ID
+		}
+		if _, ok := allowedParents[th.ParentID]; ok {
 			return th.ID
 		}
 	}
 
 	return ""
+}
+
+func findArchivedIdeaThreadID(fetch func(before *time.Time) (*discordgo.ThreadsList, error), parentID, expected string) (string, error) {
+	var before *time.Time
+
+	for {
+		threads, err := fetch(before)
+		if err != nil {
+			return "", err
+		}
+		if threads == nil {
+			return "", nil
+		}
+		if threadID := matchIdeaThreadID(threads.Threads, expected, []string{parentID}); threadID != "" {
+			return threadID, nil
+		}
+		if !threads.HasMore {
+			return "", nil
+		}
+
+		before = nextArchivedThreadSearchBefore(threads.Threads)
+		if before == nil {
+			return "", nil
+		}
+	}
+}
+
+func nextArchivedThreadSearchBefore(threads []*discordgo.Channel) *time.Time {
+	for idx := len(threads) - 1; idx >= 0; idx-- {
+		th := threads[idx]
+		if th == nil || th.ThreadMetadata == nil || th.ThreadMetadata.ArchiveTimestamp.IsZero() {
+			continue
+		}
+
+		before := th.ThreadMetadata.ArchiveTimestamp
+		return &before
+	}
+
+	return nil
+}
+
+func replyIdeaAdminError(i *discordgo.InteractionCreate, s *discordgo.Session, err error) {
+	if err != nil {
+		sentry.CaptureException(err)
+	}
+	reply(i, s, ideaAdminErrorMessage)
 }
 
 func reply(i *discordgo.InteractionCreate, s *discordgo.Session, msg string) {
