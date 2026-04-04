@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/getsentry/sentry-go"
@@ -43,7 +44,15 @@ type ideaAPIModel struct {
 
 type ideaAPIClient struct{}
 
-const ideaSubmitErrorMessage = "Something went wrong submitting your idea. Please try again later."
+const (
+	ideaSubmitErrorMessage = "Something went wrong submitting your idea. Please try again later."
+	maxIdeaTextLength      = 4096
+	maxIdeaStaffNoteLength = 1024
+)
+
+func exceedsCharacterLimit(value string, max int) bool {
+	return utf8.RuneCountInString(value) > max
+}
 
 func ideaIDToInt(id string) (int, error) {
 	id = strings.TrimSpace(id)
@@ -250,6 +259,12 @@ func IdeaCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if text == "" {
 		_, _ = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 			Content: ptrString("Please include your idea text."),
+		})
+		return
+	}
+	if exceedsCharacterLimit(text, maxIdeaTextLength) {
+		_, _ = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+			Content: ptrString(fmt.Sprintf("Your idea must be %d characters or fewer.", maxIdeaTextLength)),
 		})
 		return
 	}

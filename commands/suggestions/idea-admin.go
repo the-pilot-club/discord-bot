@@ -59,6 +59,10 @@ func IdeaAdminCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		reply(i, s, "Please provide a valid idea number.")
 		return
 	}
+	if exceedsCharacterLimit(reason, maxIdeaStaffNoteLength) {
+		reply(i, s, fmt.Sprintf("The staff note must be %d characters or fewer.", maxIdeaStaffNoteLength))
+		return
+	}
 
 	api := &ideaAPIClient{}
 	actionUserID := i.Member.User.ID
