@@ -131,7 +131,7 @@ func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	if change.After.Level > change.Before.Level {
-		content := fmt.Sprintf("Congrats <@%v>, you just advanced to TPC **level %v **!", m.Author.ID, change.After.Level)
+		content := fmt.Sprintf("Congrats <@%v>, you just advanced to TPC **level %v**!", m.Author.ID, change.After.Level)
 		_, err = s.ChannelMessageSend(m.ChannelID, content)
 		if err != nil {
 			return

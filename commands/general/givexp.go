@@ -11,6 +11,11 @@ import (
 	"tpc-discord-bot/internal/leveling"
 )
 
+const (
+	xpAdjustmentWarningColor = 0xF08C00
+	xpAdjustmentErrorColor   = 0xE03131
+)
+
 func HandleGiveXpCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	handleXpAdjustmentCommand(s, i, 1)
 }
@@ -22,9 +27,7 @@ func HandleRemoveXpCommand(s *discordgo.Session, i *discordgo.InteractionCreate)
 func handleXpAdjustmentCommand(s *discordgo.Session, i *discordgo.InteractionCreate, direction int) {
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Flags: discordgo.MessageFlagsEphemeral,
-		},
+		Data: &discordgo.InteractionResponseData{},
 	})
 	if err != nil {
 		sentry.CaptureException(err)
@@ -33,12 +36,12 @@ func handleXpAdjustmentCommand(s *discordgo.Session, i *discordgo.InteractionCre
 
 	targetUser, xpAmount, err := xpAdjustmentOptions(s, i)
 	if err != nil {
-		editXpAdjustmentResponse(s, i, err.Error())
+		editXpAdjustmentError(s, i, "XP Update Failed", err.Error())
 		return
 	}
 
 	if targetUser.Bot {
-		editXpAdjustmentResponse(s, i, "Bots do not have leaderboard XP.")
+		editXpAdjustmentWarning(s, i, "XP Not Updated", "Bots do not have leaderboard XP.")
 		return
 	}
 
@@ -49,12 +52,17 @@ func handleXpAdjustmentCommand(s *discordgo.Session, i *discordgo.InteractionCre
 
 	if err != nil && !leaderboardUserNotFound(err) {
 		sentry.CaptureException(err)
-		editXpAdjustmentResponse(s, i, "I couldn't fetch leaderboard data right now. Try again later.")
+		editXpAdjustmentError(s, i, "XP Update Failed", "I couldn't fetch leaderboard data right now. Try again later.")
 		return
 	}
 
 	if !userExists && direction < 0 {
-		editXpAdjustmentResponse(s, i, fmt.Sprintf("<@%s> does not have leaderboard data yet, so there is no XP to remove.", targetUser.ID))
+		editXpAdjustmentWarning(
+			s,
+			i,
+			"No XP Removed",
+			fmt.Sprintf("<@%s> does not have leaderboard data yet, so there is no XP to remove.", targetUser.ID),
+		)
 		return
 	}
 
@@ -63,7 +71,7 @@ func handleXpAdjustmentCommand(s *discordgo.Session, i *discordgo.InteractionCre
 		stats, err = parseLeaderboardStats(userData)
 		if err != nil {
 			sentry.CaptureException(err)
-			editXpAdjustmentResponse(s, i, "Leaderboard data for that member could not be read.")
+			editXpAdjustmentError(s, i, "XP Update Failed", "Leaderboard data for that member could not be read.")
 			return
 		}
 	}
@@ -85,7 +93,7 @@ func handleXpAdjustmentCommand(s *discordgo.Session, i *discordgo.InteractionCre
 		}, i.GuildID)
 		if createErr != nil {
 			sentry.CaptureException(createErr)
-			editXpAdjustmentResponse(s, i, "I couldn't create leaderboard data for that member.")
+			editXpAdjustmentError(s, i, "XP Update Failed", "I couldn't create leaderboard data for that member.")
 			return
 		}
 	} else {
@@ -99,15 +107,14 @@ func handleXpAdjustmentCommand(s *discordgo.Session, i *discordgo.InteractionCre
 		)
 		if err != nil {
 			sentry.CaptureException(err)
-			editXpAdjustmentResponse(s, i, "I couldn't update leaderboard data right now. Try again later.")
+			editXpAdjustmentError(s, i, "XP Update Failed", "I couldn't update leaderboard data right now. Try again later.")
 			return
 		}
 	}
 
 	leveling.SyncRoleRewards(s, i.GuildID, targetUser.ID, controller, change.After.Level)
 
-	content := formatXpAdjustmentResponse(targetUser.ID, change, !userExists, direction < 0)
-	editXpAdjustmentResponse(s, i, content)
+	editXpAdjustmentEmbed(s, i, buildXpAdjustmentEmbed(i, targetUser, change, !userExists, direction < 0))
 }
 
 func xpAdjustmentOptions(s *discordgo.Session, i *discordgo.InteractionCreate) (*discordgo.User, int, error) {
@@ -134,57 +141,78 @@ func xpAdjustmentOptions(s *discordgo.Session, i *discordgo.InteractionCreate) (
 	return targetUser, amount, nil
 }
 
-func editXpAdjustmentResponse(s *discordgo.Session, i *discordgo.InteractionCreate, content string) {
+func editXpAdjustmentEmbed(s *discordgo.Session, i *discordgo.InteractionCreate, embed *discordgo.MessageEmbed) {
+	embeds := []*discordgo.MessageEmbed{embed}
+	emptyContent := ""
+
 	_, err := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
-		Content: &content,
+		Content: &emptyContent,
+		Embeds:  &embeds,
 	})
 	if err != nil {
 		sentry.CaptureException(err)
 	}
 }
 
-func formatXpAdjustmentResponse(userID string, change leveling.UserProgressChange, createdRecord bool, removing bool) string {
-	action := "Granted"
+func editXpAdjustmentWarning(s *discordgo.Session, i *discordgo.InteractionCreate, title string, description string) {
+	editXpAdjustmentEmbed(s, i, buildXpAdjustmentStatusEmbed(title, description, xpAdjustmentWarningColor))
+}
+
+func editXpAdjustmentError(s *discordgo.Session, i *discordgo.InteractionCreate, title string, description string) {
+	editXpAdjustmentEmbed(s, i, buildXpAdjustmentStatusEmbed(title, description, xpAdjustmentErrorColor))
+}
+
+func buildXpAdjustmentStatusEmbed(title string, description string, color int) *discordgo.MessageEmbed {
+	return &discordgo.MessageEmbed{
+		Title:       title,
+		Description: description,
+		Color:       color,
+	}
+}
+
+func buildXpAdjustmentEmbed(i *discordgo.InteractionCreate, targetUser *discordgo.User, change leveling.UserProgressChange, createdRecord bool, removing bool) *discordgo.MessageEmbed {
+	description := fmt.Sprintf("✅ %s XP has been given to <@%s>", formatXpAmount(change.AppliedDelta), targetUser.ID)
 	if removing {
-		action = "Removed"
-	}
-
-	lines := []string{
-		fmt.Sprintf("%s %d XP %s <@%s>.", action, abs(change.AppliedDelta), xpDirectionPreposition(removing), userID),
-		fmt.Sprintf("Level: %d -> %d", change.Before.Level, change.After.Level),
-		fmt.Sprintf("Progress: %d / %d XP -> %d / %d XP", change.Before.CurrentXp, change.Before.NextLevelXp, change.After.CurrentXp, change.After.NextLevelXp),
-		fmt.Sprintf("Total XP: %d -> %d", change.Before.TotalXp, change.After.TotalXp),
-	}
-
-	if createdRecord {
-		lines = append(lines, "A new leaderboard record was created for this member.")
+		description = fmt.Sprintf("✅ %s XP has been removed from <@%s>", formatXpAmount(abs(change.AppliedDelta)), targetUser.ID)
 	}
 
 	if removing && change.AppliedDelta != change.RequestedDelta {
-		lines = append(lines, fmt.Sprintf("Requested removal was capped because the member only had %d total XP available.", change.Before.TotalXp))
+		description = fmt.Sprintf("⚠️ %s XP was removed from <@%s> because that was their full available total.", formatXpAmount(abs(change.AppliedDelta)), targetUser.ID)
 	}
 
-	levelDelta := change.After.Level - change.Before.Level
-	switch {
-	case levelDelta > 0:
-		lines = append(lines, fmt.Sprintf("Level increase: +%d", levelDelta))
-	case levelDelta < 0:
-		lines = append(lines, fmt.Sprintf("Level decrease: %d", abs(levelDelta)))
+	return &discordgo.MessageEmbed{
+		Description: description,
+		Color:       tpcEmbedColor,
 	}
-
-	return strings.Join(lines, "\n")
-}
-
-func xpDirectionPreposition(removing bool) string {
-	if removing {
-		return "from"
-	}
-
-	return "to"
 }
 
 func leaderboardUserNotFound(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "404")
+}
+
+func formatXpAmount(value int) string {
+	if value < 0 {
+		value = -value
+	}
+
+	text := fmt.Sprintf("%d", value)
+	if len(text) <= 3 {
+		return text
+	}
+
+	var formatted []byte
+	prefixLen := len(text) % 3
+	if prefixLen == 0 {
+		prefixLen = 3
+	}
+
+	formatted = append(formatted, text[:prefixLen]...)
+	for idx := prefixLen; idx < len(text); idx += 3 {
+		formatted = append(formatted, ',')
+		formatted = append(formatted, text[idx:idx+3]...)
+	}
+
+	return string(formatted)
 }
 
 func abs(value int) int {
