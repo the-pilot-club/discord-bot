@@ -19,6 +19,7 @@ var (
 	AdminPerms     int64 = discordgo.PermissionAdministrator
 	StaffPerms     int64 = discordgo.PermissionMentionEveryone
 	ModPerms       int64 = discordgo.PermissionBanMembers
+	dmDisabled           = false
 	GuildID              = flag.String("guild", genEnvGuild(), "Test guild ID. If not passed - bot registers commands globally")
 	GlobalCommands       = []*discordgo.ApplicationCommand{
 		// fun
@@ -240,8 +241,9 @@ var (
 
 		// Suggestions
 		{
-			Name:        "idea",
-			Description: "Share an idea that would improve the club",
+			Name:         "idea",
+			Description:  "Share an idea that would improve the club",
+			DMPermission: &dmDisabled,
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
@@ -254,6 +256,7 @@ var (
 		{
 			Name:                     "idea-admin",
 			Description:              "Manage idea statuses and staff notes.",
+			DMPermission:             &dmDisabled,
 			DefaultMemberPermissions: &AdminPerms,
 			Options: []*discordgo.ApplicationCommandOption{
 				{

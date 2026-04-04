@@ -231,6 +231,13 @@ func IdeaCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
+	if i.Member == nil || i.Member.User == nil {
+		_, _ = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+			Content: ptrString("This command can only be used in a server."),
+		})
+		return
+	}
+
 	var text string
 	for _, opt := range i.ApplicationCommandData().Options {
 		if opt.Name == "your-idea" {

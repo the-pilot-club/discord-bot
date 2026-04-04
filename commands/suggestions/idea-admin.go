@@ -28,6 +28,11 @@ func IdeaAdminCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
+	if i.Member == nil || i.Member.User == nil {
+		reply(i, s, "This command can only be used in a server.")
+		return
+	}
+
 	if len(i.ApplicationCommandData().Options) == 0 {
 		reply(i, s, "Missing subcommand.")
 		return
@@ -184,6 +189,9 @@ func archiveFlow(
 	if err != nil {
 		return err
 	}
+	if len(oldMsg.Embeds) == 0 || oldMsg.Embeds[0].Author == nil {
+		return fmt.Errorf("original idea message is missing embed data for idea %d", ideaNumber)
+	}
 
 	threadID := findThread(s, i.GuildID, ideaNumber, body.ChannelID)
 	statusID := 4
@@ -285,6 +293,9 @@ func updateMessageFlow(
 	oldMsg, err := s.ChannelMessage(body.ChannelID, body.MessageID)
 	if err != nil {
 		return err
+	}
+	if len(oldMsg.Embeds) == 0 || oldMsg.Embeds[0].Author == nil {
+		return fmt.Errorf("original idea message is missing embed data for idea %d", ideaNumber)
 	}
 
 	threadID := findThread(s, i.GuildID, ideaNumber, body.ChannelID)
