@@ -202,6 +202,12 @@ var (
 			Name:        "training-faq",
 			Description: "Replies with information about training!",
 		},
+		{
+			Name:                     "active-threads",
+			Description:              "Live-generates a clickable list of active server threads.",
+			DMPermission:             &dmDisabled,
+			DefaultMemberPermissions: &StaffPerms,
+		},
 		// Giveaway
 		{
 			Name:                     "giveaway",
