@@ -2,6 +2,7 @@ package events
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"sort"
@@ -10,33 +11,31 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/getsentry/sentry-go"
+
 	"tpc-discord-bot/internal/cache"
 	"tpc-discord-bot/internal/config"
 )
 
-func EventReminder(s *discordgo.Session) {
-	var guildsToRemind []string
-	guilds := s.State.Guilds
-	for _, guild := range guilds {
-		if config.EventRemindersEnabled(guild.ID) {
-			guildsToRemind = append(guildsToRemind, guild.ID)
+func EventReminder(s *discordgo.Session) error {
+	var errs []error
+	for _, guildID := range config.AllGuildIDs() {
+		if config.EventRemindersEnabled(guildID) {
+			if err := sendEventReminder(s, guildID); err != nil {
+				errs = append(errs, fmt.Errorf("guild %s: %w", guildID, err))
+			}
 		}
 	}
-	for _, guildID := range guildsToRemind {
-		go func() {
-			sendEventReminder(s, guildID)
-		}()
-	}
+	return errors.Join(errs...)
 }
 
-func sendEventReminder(s *discordgo.Session, guildID string) {
+func sendEventReminder(s *discordgo.Session, guildID string) error {
 	events, err := s.GuildScheduledEvents(guildID, false)
 	if err != nil {
 		sentry.CaptureException(err)
-		return
+		return err
 	}
 	if len(events) == 0 {
-		return
+		return nil
 	}
 
 	// Filter to only scheduled events (exclude active/completed/canceled)
@@ -47,7 +46,7 @@ func sendEventReminder(s *discordgo.Session, guildID string) {
 		}
 	}
 	if len(scheduled) == 0 {
-		return
+		return nil
 	}
 
 	// Sort by start time and get the nearest upcoming event
@@ -60,7 +59,7 @@ func sendEventReminder(s *discordgo.Session, guildID string) {
 	now := time.Now().UTC()
 	timeUntilEvent := ne.ScheduledStartTime.Sub(now)
 	if timeUntilEvent < 0 || timeUntilEvent > time.Hour {
-		return
+		return nil
 	}
 
 	// Check dedup cache
@@ -68,14 +67,14 @@ func sendEventReminder(s *discordgo.Session, guildID string) {
 	cacheKey := fmt.Sprintf("eventreminder:%s", ne.ID)
 	existing, _ := cache.Get(ctx, cacheKey)
 	if existing == "sent" {
-		return
+		return nil
 	}
 
 	// Get target channel
 	channelID := config.GetChannelId(guildID, "Crew Chat")
 	if channelID == "" {
 		log.Printf("No 'Crew Chat' channel configured for guild %s", guildID)
-		return
+		return nil
 	}
 
 	// Group flight ping all days, ping GA flights on Tuesday and Wednesday
@@ -136,10 +135,11 @@ func sendEventReminder(s *discordgo.Session, guildID string) {
 	if err != nil {
 		sentry.CaptureException(err)
 		log.Printf("Failed to send event reminder for '%s': %v", ne.Name, err)
-		return
+		return err
 	}
 
 	// Mark as sent with 48h TTL
 	_ = cache.Set(ctx, cacheKey, "sent", 48*time.Hour)
 	log.Printf("Event reminder sent for '%s' in guild %s", ne.Name, guildID)
+	return nil
 }

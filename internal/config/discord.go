@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -94,7 +95,7 @@ func LoadAllServerConfigOrPanic(configPath string) map[string]ServerConfig {
 	cfgs, err := LoadAllServerConfig(configPath)
 	if err != nil {
 		sentry.CaptureException(err)
-		log.Printf(err.Error())
+		log.Print(err)
 	}
 	return cfgs
 }
@@ -111,7 +112,7 @@ func LoadAllServerConfig(configPath string) (map[string]ServerConfig, error) {
 			cfg, err := LoadServerConfig(fmt.Sprintf("%s/%s", configPath, f.Name()))
 			if err != nil {
 				sentry.CaptureException(err)
-				log.Printf(err.Error())
+				log.Print(err)
 				return nil, nil
 			}
 			cfgs[cfg.Id] = *cfg
@@ -139,6 +140,17 @@ func LoadServerConfig(configPath string) (*ServerConfig, error) {
 }
 
 var configs = LoadAllServerConfigOrPanic(ConfigPath)
+
+// AllGuildIDs returns the IDs of every guild that has a server config loaded.
+// This lets cron jobs enumerate configured guilds without an open gateway session.
+func AllGuildIDs() []string {
+	ids := make([]string, 0, len(configs))
+	for id := range configs {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	return ids
+}
 
 func IntervalReloadConfigs() {
 	for {
