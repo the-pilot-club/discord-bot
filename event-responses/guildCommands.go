@@ -1,15 +1,15 @@
 package event_responses
 
 import (
+	"github.com/bwmarrin/discordgo"
 	"tpc-discord-bot/commands/admin"
 	"tpc-discord-bot/commands/charters"
 	"tpc-discord-bot/commands/fcp"
 	"tpc-discord-bot/commands/general"
 	"tpc-discord-bot/commands/giveaway"
+	"tpc-discord-bot/commands/suggestions"
 	"tpc-discord-bot/commands/training"
 	"tpc-discord-bot/commands/vatsim"
-	"tpc-discord-bot/commands/suggestions"
-	"github.com/bwmarrin/discordgo"
 )
 
 func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -79,6 +79,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 		"training-faq": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go general.HandleTrainingFAQ(s, i)
+		},
+		"active-threads": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go general.HandleActiveThreadsCommand(s, i)
 		},
 		"idea": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go suggestions.IdeaCommand(s, i)
