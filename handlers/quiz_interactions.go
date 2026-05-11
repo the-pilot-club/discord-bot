@@ -1,10 +1,13 @@
 package handlers
 
 import (
-	"github.com/bwmarrin/discordgo"
-	"github.com/the-pilot-club/tpcgo"
 	"log"
 	"strings"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/the-pilot-club/tpcgo"
+
+	tpcclient "tpc-discord-bot/internal/tpc"
 )
 
 // HandleQuizButton handles quiz option selection and makes sure user hasnt already answered
@@ -29,7 +32,7 @@ func HandleQuizButton(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	tpc := getTPC()
+	tpc := tpcclient.Session()
 	if tpc == nil {
 		return
 	}

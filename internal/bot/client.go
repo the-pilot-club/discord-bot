@@ -1,71 +1,28 @@
 package bot
 
 import (
-	"github.com/getsentry/sentry-go"
 	"log"
 	"os"
 	"os/signal"
-	"time"
-	cron_jobs "tpc-discord-bot/cron-jobs"
+
 	"tpc-discord-bot/handlers"
-	"tpc-discord-bot/internal/cache"
+	"tpc-discord-bot/internal/bootstrap"
 	"tpc-discord-bot/internal/config"
 	"tpc-discord-bot/util"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-func Session() (*discordgo.Session, error) {
-	discord, err := discordgo.New("Bot " + config.DiscordToken)
-	if err != nil {
-		sentry.CaptureException(err)
-		return nil, err
-	}
-	return discord, nil
-}
-
 func Run() {
-	if config.Env == "production" {
-		err := sentry.Init(sentry.ClientOptions{
-			Dsn:         config.SentryDSN,
-			Debug:       false,
-			Environment: config.Env,
-		})
-		if err != nil {
-			log.Fatalf("sentry.Init: %s", err)
-		}
-		defer sentry.Flush(2 * time.Second)
-	}
-
-	cache.InitCache()
-	defer cache.CloseCache()
-
 	log.Print("Starting discord-bot-v3")
-	session, err := Session()
+	session, cleanup, err := bootstrap.InitForBot(AddHandlers)
 	if err != nil {
-		sentry.CaptureException(err)
-		println(err.Error())
+		log.Print(err.Error())
+		return
 	}
-	session.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
-
-	// add all handlers to the session
-	AddHandlers(session)
-
-	err = session.Open()
-	go cron_jobs.HandleCronJobs(session)
-	if err != nil {
-		sentry.CaptureException(err)
-		println(err.Error())
-	}
+	defer cleanup()
 
 	util.HandleApplicationCommandUpdates(session)
-
-	defer func(session *discordgo.Session) {
-		err := session.Close()
-		if err != nil {
-
-		}
-	}(session)
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
@@ -79,7 +36,6 @@ func AddHandlers(s *discordgo.Session) {
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		go config.IntervalReloadConfigs()
 		go handlers.HandleClientReady(s)
-		//go cron_jobs.HandleCronJobs(s)
 	})
 
 	s.AddHandler(func(s *discordgo.Session, m *discordgo.GuildMemberUpdate) {
