@@ -20,6 +20,7 @@ var (
 	StaffPerms     int64   = discordgo.PermissionMentionEveryone
 	ModPerms       int64   = discordgo.PermissionBanMembers
 	PositiveXpMin  float64 = 1
+	dmDisabled             = false
 	GuildID                = flag.String("guild", genEnvGuild(), "Test guild ID. If not passed - bot registers commands globally")
 	GlobalCommands         = []*discordgo.ApplicationCommand{
 		// fun

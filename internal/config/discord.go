@@ -70,7 +70,7 @@ type BaseUrls struct {
 }
 
 func (b BaseUrls) Value() string {
-	if b.Link != "" {
+	if strings.TrimSpace(b.Link) != "" {
 		return b.Link
 	}
 
