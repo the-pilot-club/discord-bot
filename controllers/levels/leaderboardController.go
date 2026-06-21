@@ -4,15 +4,23 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/getsentry/sentry-go"
 	"io"
 	"math/rand"
 	"net/http"
 	"time"
+
+	"github.com/getsentry/sentry-go"
+
 	"tpc-discord-bot/internal/config"
 )
 
 type LeaderboardController struct{}
+
+type LeaderboardPage struct {
+	TotalCount int                      `json:"totalCount"`
+	PageCount  int                      `json:"pageCount"`
+	Items      []map[string]interface{} `json:"items"`
+}
 
 type UserCreate struct {
 	GuildID         string `json:"guildId"`
@@ -39,6 +47,20 @@ func (c *LeaderboardController) FindUser(id string, guildId string) (map[string]
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	return result, err
+}
+
+func (c *LeaderboardController) FindLeaderboardUsers(guildId string, offset, limit int) (*LeaderboardPage, error) {
+	url := fmt.Sprintf("%s/discord/leaderboard/users?offset=%d&limit=%d", config.GetBaseUrl(guildId, "Internal API"), offset, limit)
+	resp, err := c.sendRequest("GET", url, nil, guildId)
+	if err != nil {
+		sentry.CaptureException(err)
+		return nil, err
+	}
+	defer closeResponseBody(resp)
+
+	var result LeaderboardPage
+	err = json.NewDecoder(resp.Body).Decode(&result)
+	return &result, err
 }
 
 func (c *LeaderboardController) AddUser(userId, guildId string) error {

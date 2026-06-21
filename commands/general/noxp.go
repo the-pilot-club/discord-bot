@@ -104,11 +104,11 @@ func noXpCommandOptions(s *discordgo.Session, i *discordgo.InteractionCreate) (*
 	}
 
 	if targetUser == nil {
-		return nil, false, fmt.Errorf("Unable to resolve the requested member")
+		return nil, false, fmt.Errorf("unable to resolve the requested member")
 	}
 
 	if !enabledSet {
-		return nil, false, fmt.Errorf("Unable to read the requested no-XP state")
+		return nil, false, fmt.Errorf("unable to read the requested no-XP state")
 	}
 
 	return targetUser, enabled, nil

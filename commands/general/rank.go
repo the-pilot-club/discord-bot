@@ -64,7 +64,7 @@ func HandleRankCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			return
 		}
 
-		editRankError(s, i, fmt.Sprintf("<@%s> does not have leaderboard data yet. Send a message in an XP-enabled channel first.", targetUser.ID))
+		editRankError(s, i, fmt.Sprintf("<@%s> does not have leaderboard data yet.", targetUser.ID))
 		return
 	}
 
@@ -76,12 +76,10 @@ func HandleRankCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	embed := buildRankEmbed(i, targetUser, stats)
-	components := leaderboardLinkComponents()
 	embeds := []*discordgo.MessageEmbed{embed}
 
 	_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
-		Embeds:     &embeds,
-		Components: &components,
+		Embeds: &embeds,
 	})
 	if err != nil {
 		sentry.CaptureException(err)
@@ -187,10 +185,9 @@ func buildRankEmbed(i *discordgo.InteractionCreate, user *discordgo.User, stats 
 			Name:    displayName,
 			IconURL: user.AvatarURL(""),
 		},
-		Title:       fmt.Sprintf("%s's Leaderboard Rank", displayName),
-		Description: "Use the button below to open the full leaderboard.",
-		Fields:      fields,
-		Color:       tpcEmbedColor,
+		Title:  fmt.Sprintf("%s's Leaderboard Rank", displayName),
+		Fields: fields,
+		Color:  tpcEmbedColor,
 		Footer: &discordgo.MessageEmbedFooter{
 			Text:    "Made by TPC Tech Team",
 			IconURL: "https://static1.squarespace.com/static/614689d3918044012d2ac1b4/t/616ff36761fabc72642806e3/1634726781251/TPC_FullColor_TransparentBg_1280x1024_72dpi.png",

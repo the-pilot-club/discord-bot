@@ -184,7 +184,7 @@ var (
 		// General
 		{
 			Name:        "leaderboard",
-			Description: "The link to find our leaderboard!",
+			Description: "Displays the current leaderboard",
 		},
 		{
 			Name:        "rank",
