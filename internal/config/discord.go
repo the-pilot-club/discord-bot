@@ -73,7 +73,6 @@ func (b BaseUrls) Value() string {
 	if strings.TrimSpace(b.Link) != "" {
 		return b.Link
 	}
-
 	return b.URL
 }
 
