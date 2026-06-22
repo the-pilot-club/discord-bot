@@ -1,6 +1,6 @@
 id: 1148307481085358190
 name: Dev Server
-xpgive-enabled: false
+xpgive-enabled: true
 event-reminders: true
 roles:
     - name: VR
@@ -186,28 +186,27 @@ pilot-rating-roles:
 channels:
     - name: Git Channel
       id: 1148307485904601172
-      permissions: []
     - name: Screenshot Contest
       id: 1148307483002155098
-      permissions: []
     - name: Crew Chat
       id: 1148307482557554763
-      permissions: []
     - name: Training Request
       id: 1148307483828428933
-      permissions: []
     - name: SOP
       id: 1148307482557554759
-      permissions: []
     - name: Charters Requests
       id: 1148307483828428939
-      permissions: []
     - name: Bot Dump
       id: 1148307485904601175
-      permissions: []
     - name: Quiz Channel
       id: 1148307483002155102
-      permissions: [ ]
+# Channels and categories where messages should NOT earn XP. XP is earned everywhere by default
+xp-disabled-channels: []
+xp-disabled-categories:
+    - name: Training Staff
+      id: 1148307484587589755
+    - name: Staff
+      id: 1148307484939919414
 emojis:
     - name: TPC Reaction
       id: :giveaway:1225560451279097926

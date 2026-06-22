@@ -40,9 +40,8 @@ func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	// Check if channel is in XP channels list
-	channelAllowed := config.ValidXpChannel(m.GuildID, channel)
-	if !channelAllowed {
+	// Skip if the channel (or a category/channel it lives under) has XP disabled
+	if !config.ValidXpChannel(m.GuildID, channel, xpChannelAncestors(s, channel)...) {
 		return
 	}
 
@@ -139,6 +138,23 @@ func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		leveling.SyncRoleRewards(s, m.GuildID, m.Author.ID, controller, change.After.Level)
 	}
+}
+
+// helper func to walk up from a channel to collect its parent channel and
+// category, so ValidXpChannel can honour XP being disabled on a thread's parent
+// channel or its category.
+func xpChannelAncestors(s *discordgo.Session, channel *discordgo.Channel) []*discordgo.Channel {
+	var ancestors []*discordgo.Channel
+	current := channel
+	for i := 0; i < 2 && current != nil && current.ParentID != ""; i++ {
+		parent, err := s.Channel(current.ParentID)
+		if err != nil || parent == nil {
+			break
+		}
+		ancestors = append(ancestors, parent)
+		current = parent
+	}
+	return ancestors
 }
 
 func processLastMessageSent(m string) bool {
