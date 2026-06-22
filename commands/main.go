@@ -216,6 +216,12 @@ var (
 			Name:        "training-faq",
 			Description: "Replies with information about training!",
 		},
+		{
+			Name:                     "active-threads",
+			Description:              "Live-generates a clickable list of active server threads.",
+			DMPermission:             &dmDisabled,
+			DefaultMemberPermissions: &StaffPerms,
+		},
 		// Giveaway
 		{
 			Name:                     "giveaway",
@@ -294,7 +300,128 @@ var (
 		},
 
 		// Suggestions
-
+		{
+			Name:         "idea",
+			Description:  "Share an idea that would improve the club",
+			DMPermission: &dmDisabled,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "your-idea",
+					Description: "Describe your idea",
+					Required:    true,
+					MaxLength:   4096,
+				},
+			},
+		},
+		{
+			Name:                     "idea-admin",
+			Description:              "Manage idea statuses and staff notes.",
+			DMPermission:             &dmDisabled,
+			DefaultMemberPermissions: &AdminPerms,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "implement",
+					Description: "Mark an idea as implemented",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Name:        "idea-number",
+							Description: "The idea number to mark as implemented",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "An optional staff note about the implementation",
+							Required:    false,
+							MaxLength:   1024,
+						},
+					},
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "consider",
+					Description: "Mark an idea as under review",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Name:        "idea-number",
+							Description: "The idea number to mark as under review",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "An optional staff note about the review",
+							Required:    false,
+							MaxLength:   1024,
+						},
+					},
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "deny",
+					Description: "Mark an idea as denied",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Name:        "idea-number",
+							Description: "The idea number to mark as denied",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "An optional staff note about the denial",
+							Required:    false,
+							MaxLength:   1024,
+						},
+					},
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "approve",
+					Description: "Mark an idea as approved",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Name:        "idea-number",
+							Description: "The idea number to mark as approved",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "An optional staff note about the approval",
+							Required:    false,
+							MaxLength:   1024,
+						},
+					},
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "edit-reason",
+					Description: "Update the staff note for an idea",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Name:        "idea-number",
+							Description: "The idea number whose staff note you want to update",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "The new staff note",
+							Required:    true,
+							MaxLength:   1024,
+						},
+					},
+				},
+			},
+		},
 		//Training
 		{
 			Name:        "training-request",

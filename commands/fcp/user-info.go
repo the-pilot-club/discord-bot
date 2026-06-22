@@ -3,10 +3,11 @@ package fcp
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/getsentry/sentry-go"
 	"github.com/the-pilot-club/tpcgo"
-	"time"
 )
 
 func UserInfoFCP(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -29,7 +30,7 @@ func UserInfoFCP(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	u, ferr := f.GetFCPUser(me.ID)
 	if ferr != nil {
 		fmt.Println(ferr)
-		if errors.As(ferr, &tpcgo.ErrNotFound) {
+		if errors.Is(ferr, tpcgo.ErrNotFound) {
 			var content string
 			content += "Request could not be completed as dialed. Please try again later"
 			_, errr := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{

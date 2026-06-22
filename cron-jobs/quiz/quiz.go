@@ -1,48 +1,37 @@
-package handlers
+package quiz
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/the-pilot-club/tpcgo"
 
 	"tpc-discord-bot/internal/config"
+	tpcclient "tpc-discord-bot/internal/tpc"
 )
 
 const quizChannelName = "Quiz Channel"
 
-var tpcSession *tpcgo.Session
-
-func getTPC() *tpcgo.Session {
-	if tpcSession != nil {
-		return tpcSession
-	}
-	s, err := tpcgo.NewSession(tpcgo.SessionConfig{
-		CoreApiKey: config.CoreAPIToken,
-	})
-	if err != nil {
-		log.Printf("tpcgo.NewSession error: %v", err)
-		return nil
-	}
-	tpcSession = s
-	return s
-}
-
-// SendQuizQuestion posts the question to the quiz channel in each guild that has one configured.
-func SendQuizQuestion(s *discordgo.Session) {
-	tpc := getTPC()
+// SendQuizQuestion posts the question to the quiz channel in each configured guild.
+func SendQuizQuestion(s *discordgo.Session) error {
+	tpc := tpcclient.Session()
 	if tpc == nil {
-		return
+		return errors.New("tpc session unavailable")
 	}
 
 	q, err := tpc.GetNextQuizQuestion()
 	if err != nil || q == nil || q.ID == "" {
+		nextErr := err
 		log.Printf("GetNextQuizQuestion failed (%v), falling back to current", err)
 		q, err = tpc.GetCurrentQuizQuestions()
 		if err != nil || q == nil || q.ID == "" {
 			log.Printf("GetCurrentQuizQuestions failed: %v", err)
-			return
+			if err != nil {
+				return fmt.Errorf("get current quiz question after next failed (%v): %w", nextErr, err)
+			}
+			return fmt.Errorf("current quiz question unavailable after next failed (%v)", nextErr)
 		}
 	}
 
@@ -57,8 +46,9 @@ func SendQuizQuestion(s *discordgo.Session) {
 		},
 	}
 
-	for _, g := range s.State.Guilds {
-		channelID := config.GetChannelId(g.ID, quizChannelName)
+	var errs []error
+	for _, guildID := range config.AllGuildIDs() {
+		channelID := config.GetChannelId(guildID, quizChannelName)
 		if channelID == "" {
 			continue
 		}
@@ -68,35 +58,41 @@ func SendQuizQuestion(s *discordgo.Session) {
 			Components: []discordgo.MessageComponent{row},
 		})
 		if err != nil {
-			log.Printf("failed to send quiz question to guild %s (%s): %v", g.Name, g.ID, err)
+			log.Printf("failed to send quiz question to guild %s: %v", guildID, err)
+			errs = append(errs, fmt.Errorf("send quiz question to guild %s: %w", guildID, err))
 			continue
 		}
 
 		if _, err := tpc.SetQuestionForResponse(msg.ID, q.ID); err != nil {
-			log.Printf("SetQuestionForResponse error (guild %s): %v", g.ID, err)
+			log.Printf("SetQuestionForResponse error (guild %s): %v", guildID, err)
+			errs = append(errs, fmt.Errorf("set question response for guild %s: %w", guildID, err))
 		}
 	}
+	return errors.Join(errs...)
 }
 
-// SendQuizAnswer posts the correct answer to the quiz channel in each guild that has one configured,
+// SendQuizAnswer posts the correct answer to the quiz channel in each configured guild,
 // then resets user responses.
-func SendQuizAnswer(s *discordgo.Session) {
-	tpc := getTPC()
+func SendQuizAnswer(s *discordgo.Session) error {
+	tpc := tpcclient.Session()
 	if tpc == nil {
-		return
+		return errors.New("tpc session unavailable")
 	}
 
 	q, err := tpc.GetCurrentQuizQuestions()
 	if err != nil || q == nil || q.ID == "" {
 		log.Printf("GetCurrentQuizQuestions failed: %v", err)
-		return
+		if err != nil {
+			return fmt.Errorf("get current quiz question: %w", err)
+		}
+		return errors.New("current quiz question unavailable")
 	}
 
 	ans := strings.ToLower(strings.TrimSpace(q.CorrectAnswer))
 	users, err := tpc.GetQuizUserResponses(q.ID, ans)
 	if err != nil {
 		log.Printf("GetQuizUserResponses failed (questionID=%s, ans=%q): %v", q.ID, ans, err)
-		return
+		return fmt.Errorf("get quiz user responses: %w", err)
 	}
 
 	var header string
@@ -127,17 +123,21 @@ func SendQuizAnswer(s *discordgo.Session) {
 
 	answerText := buildAnswerText()
 
-	for _, g := range s.State.Guilds {
-		channelID := config.GetChannelId(g.ID, quizChannelName)
+	var errs []error
+	for _, guildID := range config.AllGuildIDs() {
+		channelID := config.GetChannelId(guildID, quizChannelName)
 		if channelID == "" {
 			continue
 		}
 		if _, err := s.ChannelMessageSend(channelID, answerText); err != nil {
-			log.Printf("failed to send quiz answer to guild %s (%s): %v", g.Name, g.ID, err)
+			log.Printf("failed to send quiz answer to guild %s: %v", guildID, err)
+			errs = append(errs, fmt.Errorf("send quiz answer to guild %s: %w", guildID, err))
 		}
 	}
 
 	if _, err := tpc.ResetQuizUserResponses(); err != nil {
 		log.Printf("ResetQuizUserResponses error: %v", err)
+		errs = append(errs, fmt.Errorf("reset quiz user responses: %w", err))
 	}
+	return errors.Join(errs...)
 }

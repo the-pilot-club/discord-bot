@@ -2,11 +2,13 @@ package airac
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/getsentry/sentry-go"
+
 	"tpc-discord-bot/internal/cache"
 	"tpc-discord-bot/internal/config"
 )
@@ -18,7 +20,7 @@ const tpcIconURL = "https://static1.squarespace.com/static/614689d3918044012d2ac
 const airacDescription = "AIRAC (Aeronautical Information Regulation and Control) cycles contain updated navigation data including waypoints, airways, procedures, and airport information."
 const embedColor = 3651327
 
-func AiracReminder(s *discordgo.Session) {
+func AiracReminder(s *discordgo.Session) error {
 	now := time.Now().UTC().Truncate(24 * time.Hour)
 
 	currentEffective, currentID := getCurrentCycle(now)
@@ -34,17 +36,18 @@ func AiracReminder(s *discordgo.Session) {
 		key = nextID + "-daybefore"
 		embed = buildDayBeforeEmbed(nextID)
 	} else {
-		return
+		return nil
 	}
 
 	ctx := context.Background()
 	lastSentKey, _ := cache.Get(ctx, "airac:lastSentKey")
 	if lastSentKey == key {
-		return
+		return nil
 	}
 
-	for _, guild := range s.State.Guilds {
-		channelID := config.GetChannelId(guild.ID, "Crew Chat")
+	var errs []error
+	for _, guildID := range config.AllGuildIDs() {
+		channelID := config.GetChannelId(guildID, "Crew Chat")
 		if channelID == "" {
 			continue
 		}
@@ -53,10 +56,15 @@ func AiracReminder(s *discordgo.Session) {
 		})
 		if err != nil {
 			sentry.CaptureException(err)
+			errs = append(errs, fmt.Errorf("guild %s: %w", guildID, err))
 		}
 	}
 
-	cache.Set(ctx, "airac:lastSentKey", key, 0)
+	if err := cache.Set(ctx, "airac:lastSentKey", key, 0); err != nil {
+		sentry.CaptureException(err)
+		errs = append(errs, fmt.Errorf("set airac last sent key: %w", err))
+	}
+	return errors.Join(errs...)
 }
 
 func getCurrentCycle(now time.Time) (effectiveDate time.Time, identifier string) {
