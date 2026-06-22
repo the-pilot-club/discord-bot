@@ -218,7 +218,7 @@ baseurl:
   - name: FCP
     url: https://flightcrew-beta.thepilotclub.org
   - name: Internal API
-    url: https://api.thepilotclub.org
+    url: https://api.ejsteiner.com
   - name: Leaderboard
     url: https://mee6.xyz/thepilotclub
 role_rewards:
