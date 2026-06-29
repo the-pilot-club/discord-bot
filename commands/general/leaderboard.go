@@ -128,7 +128,7 @@ func buildLeaderboardErrorEmbed(description string) *discordgo.MessageEmbed {
 	return &discordgo.MessageEmbed{
 		Title:       "TPC XP Leaderboard",
 		Description: description,
-		Color:       xpAdjustmentErrorColor,
+		Color:       colorError,
 	}
 }
 

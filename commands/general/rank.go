@@ -12,8 +12,6 @@ import (
 	"tpc-discord-bot/internal/leveling"
 )
 
-const tpcEmbedColor = 3651327
-
 type leaderboardStats struct {
 	Rank         int
 	Level        int

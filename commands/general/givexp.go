@@ -11,20 +11,15 @@ import (
 	"tpc-discord-bot/internal/leveling"
 )
 
-const (
-	xpAdjustmentWarningColor = 0xF08C00
-	xpAdjustmentErrorColor   = 0xE03131
-)
-
 func HandleGiveXpCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	handleXpAdjustmentCommand(s, i, 1)
+	handleXpAdjustmentCommand(s, i, false)
 }
 
 func HandleRemoveXpCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	handleXpAdjustmentCommand(s, i, -1)
+	handleXpAdjustmentCommand(s, i, true)
 }
 
-func handleXpAdjustmentCommand(s *discordgo.Session, i *discordgo.InteractionCreate, direction int) {
+func handleXpAdjustmentCommand(s *discordgo.Session, i *discordgo.InteractionCreate, remove bool) {
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{},
@@ -45,7 +40,10 @@ func handleXpAdjustmentCommand(s *discordgo.Session, i *discordgo.InteractionCre
 		return
 	}
 
-	delta := direction * xpAmount
+	delta := xpAmount
+	if remove {
+		delta = -xpAmount
+	}
 	controller := &controllers.LeaderboardController{}
 	userData, err := controller.FindUser(targetUser.ID, i.GuildID)
 	userExists := err == nil
@@ -56,7 +54,7 @@ func handleXpAdjustmentCommand(s *discordgo.Session, i *discordgo.InteractionCre
 		return
 	}
 
-	if !userExists && direction < 0 {
+	if !userExists && remove {
 		editXpAdjustmentWarning(
 			s,
 			i,
@@ -114,7 +112,7 @@ func handleXpAdjustmentCommand(s *discordgo.Session, i *discordgo.InteractionCre
 
 	leveling.SyncRoleRewards(s, i.GuildID, targetUser.ID, controller, change.After.Level)
 
-	editXpAdjustmentEmbed(s, i, buildXpAdjustmentEmbed(i, targetUser, change, !userExists, direction < 0))
+	editXpAdjustmentEmbed(s, i, buildXpAdjustmentEmbed(i, targetUser, change, !userExists, remove))
 }
 
 func xpAdjustmentOptions(s *discordgo.Session, i *discordgo.InteractionCreate) (*discordgo.User, int, error) {
@@ -155,11 +153,11 @@ func editXpAdjustmentEmbed(s *discordgo.Session, i *discordgo.InteractionCreate,
 }
 
 func editXpAdjustmentWarning(s *discordgo.Session, i *discordgo.InteractionCreate, title string, description string) {
-	editXpAdjustmentEmbed(s, i, buildXpAdjustmentStatusEmbed(title, description, xpAdjustmentWarningColor))
+	editXpAdjustmentEmbed(s, i, buildXpAdjustmentStatusEmbed(title, description, colorWarning))
 }
 
 func editXpAdjustmentError(s *discordgo.Session, i *discordgo.InteractionCreate, title string, description string) {
-	editXpAdjustmentEmbed(s, i, buildXpAdjustmentStatusEmbed(title, description, xpAdjustmentErrorColor))
+	editXpAdjustmentEmbed(s, i, buildXpAdjustmentStatusEmbed(title, description, colorError))
 }
 
 func buildXpAdjustmentStatusEmbed(title string, description string, color int) *discordgo.MessageEmbed {
