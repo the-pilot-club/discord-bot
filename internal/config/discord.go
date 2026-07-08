@@ -28,17 +28,19 @@ var CoreAPIToken = os.Getenv("INTERNAL_API_KEY")
 var RedisURL = os.Getenv("REDIS_URL")
 
 type ServerConfig struct {
-	Id             string              `yaml:"id"`
-	Name           string              `yaml:"name"`
-	XpGiveEnabled  bool                `yaml:"xpgive-enabled"`
-	EventReminders bool                `yaml:"event-reminders"`
-	Roles          []RoleConfig        `yaml:"roles"`
-	RatingRoles    []RatingRolesConfig `yaml:"ratings-roles"`
-	PilotRoles     []RatingRolesConfig `yaml:"pilot-rating-roles"`
-	Channels       []ChannelConfig     `yaml:"channels"`
-	Emojis         []EmojiConfig       `yaml:"emojis"`
-	BaseUrl        []BaseUrls          `yaml:"baseurl"`
-	RoleRewards    []RoleReward        `yaml:"role_rewards"`
+	Id                   string              `yaml:"id"`
+	Name                 string              `yaml:"name"`
+	XpGiveEnabled        bool                `yaml:"xpgive-enabled"`
+	EventReminders       bool                `yaml:"event-reminders"`
+	Roles                []RoleConfig        `yaml:"roles"`
+	RatingRoles          []RatingRolesConfig `yaml:"ratings-roles"`
+	PilotRoles           []RatingRolesConfig `yaml:"pilot-rating-roles"`
+	Channels             []ChannelConfig     `yaml:"channels"`
+	XpDisabledChannels   []ChannelReference  `yaml:"xp-disabled-channels"`
+	XpDisabledCategories []ChannelReference  `yaml:"xp-disabled-categories"`
+	Emojis               []EmojiConfig       `yaml:"emojis"`
+	BaseUrl              []BaseUrls          `yaml:"baseurl"`
+	RoleRewards          []RoleReward        `yaml:"role_rewards"`
 }
 
 type RoleConfig struct {
@@ -53,9 +55,36 @@ type RatingRolesConfig struct {
 }
 
 type ChannelConfig struct {
-	Name        string               `yaml:"name"`
-	Id          string               `yaml:"id"`
-	Permissions []ChannelPermissions `yaml:"permissions"`
+	Name string `yaml:"name"`
+	Id   string `yaml:"id"`
+}
+
+// ChannelReference points at a channel or category. It can be written in the
+// config either as the Discord ID or as a mapping with name
+// and id, e.g.
+//
+//	xp-disabled-channels:
+//	  - 1234567890
+//	  - name: Staff Chat
+//	    id: 9876543210
+type ChannelReference struct {
+	Name string `yaml:"name"`
+	Id   string `yaml:"id"`
+}
+
+func (r *ChannelReference) UnmarshalYAML(value *yaml.Node) error {
+	if value.Kind == yaml.ScalarNode {
+		r.Id = value.Value
+		return nil
+	}
+	// avoid recursing into this method when decoding the mapping form
+	type rawReference ChannelReference
+	var raw rawReference
+	if err := value.Decode(&raw); err != nil {
+		return err
+	}
+	*r = ChannelReference(raw)
+	return nil
 }
 
 type EmojiConfig struct {
@@ -81,11 +110,6 @@ type RoleReward struct {
 	RoleName string `yaml:"role_name"`
 	RoleID   string `yaml:"role_id"`
 	Level    int    `yaml:"level"`
-}
-
-type ChannelPermissions struct {
-	Name  string `yaml:"name"`
-	Value string `yaml:"value"`
 }
 
 var Cfg ServerConfig
@@ -232,41 +256,66 @@ func GetInternalApiKey(id string) string {
 	return os.Getenv("INTERNAL_API_KEY")
 }
 
-// checks if the channel has the XP permission.
-func ValidXpChannel(id string, channel *discordgo.Channel) bool {
-	channelName := channel.Name
-	cfg := configs[id]
-
-	if cfg.Channels == nil {
+// ValidXpChannel reports whether messages in the given channel should earn XP.
+// XP is earned everywhere by default. A guild opts specific channels or whole
+// categories out via xp-disabled-channels / xp-disabled-categories in its
+// config. Threads inherit the state of trheir parent channel
+func ValidXpChannel(guildID string, channel *discordgo.Channel, ancestors ...*discordgo.Channel) bool {
+	if channel == nil {
 		return false
 	}
-	// Find the channel
-	for i := 0; i < len(cfg.Channels); i++ {
-		if strings.EqualFold(cfg.Channels[i].Name, channelName) {
-			// Check the permission
-			return GetBooleanPermissionValue(GetPermissionValue(cfg.Channels[i], "xp"))
+
+	cfg := configs[guildID]
+
+	for _, ch := range append([]*discordgo.Channel{channel}, ancestors...) {
+		if ch == nil {
+			continue
+		}
+		if channelMatchesRef(cfg.XpDisabledChannels, ch) || channelMatchesRef(cfg.XpDisabledCategories, ch) {
+			return false
+		}
+		// A parent we weren't handed an object for can still be matched by ID
+		if idInRefs(cfg.XpDisabledChannels, ch.ParentID) || idInRefs(cfg.XpDisabledCategories, ch.ParentID) {
+			return false
 		}
 	}
-	return false // return false either way - should we log this?
+
+	return true
 }
 
-// Returns the permission value as a boolean based on what is passed in.
-// if the value is mispelled or not found it will return false.
-func GetBooleanPermissionValue(value string) bool {
-	return strings.EqualFold(value, "true")
-}
-
-// Returns the permission value as a string
-// All permission values are strings - this allows for greater flexibility -
-// and handling of typos in the config (i.e. tuer or flsae admit it we have all done it)
-// or additions of numerical values for a permission in the future.
-func GetPermissionValue(channel ChannelConfig, permissionName string) string {
-	for i := 0; i < len(channel.Permissions); i++ {
-		if strings.EqualFold(channel.Permissions[i].Name, permissionName) {
-			return channel.Permissions[i].Value
+// reports whether channel is named in refs, by ID or name
+func channelMatchesRef(refs []ChannelReference, channel *discordgo.Channel) bool {
+	if channel == nil {
+		return false
+	}
+	normalizedName := normalizeChannelName(channel.Name)
+	for _, ref := range refs {
+		if ref.Id != "" && ref.Id == channel.ID {
+			return true
+		}
+		if ref.Name != "" && normalizeChannelName(ref.Name) == normalizedName {
+			return true
 		}
 	}
-	return "" // empty string if not found
+	return false
+}
+
+// idInRefs reports whether id matches the ID of any reference in refs
+func idInRefs(refs []ChannelReference, id string) bool {
+	if id == "" {
+		return false
+	}
+	for _, ref := range refs {
+		if ref.Id == id {
+			return true
+		}
+	}
+	return false
+}
+
+func normalizeChannelName(name string) string {
+	replacer := strings.NewReplacer(" ", "-", "_", "-")
+	return strings.ToLower(replacer.Replace(name))
 }
 
 func GetRatingsRoles(id string) []RatingRolesConfig {
