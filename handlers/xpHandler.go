@@ -133,7 +133,7 @@ func HandleXpGive(s *discordgo.Session, m *discordgo.MessageCreate) {
 		content := fmt.Sprintf("Congrats <@%v>, you just advanced to TPC **level %v**!", m.Author.ID, change.After.Level)
 		_, err = s.ChannelMessageSend(m.ChannelID, content)
 		if err != nil {
-			return
+			sentry.CaptureException(err)
 		}
 
 		leveling.SyncRoleRewards(s, m.GuildID, m.Author.ID, controller, change.After.Level)
