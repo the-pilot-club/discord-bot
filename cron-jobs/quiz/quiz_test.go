@@ -182,8 +182,8 @@ func TestSendQuizAnswerAwardsMembersAcrossGuildsOffline(t *testing.T) {
 			t.Fatalf("message content = %q, want %q", message.content, wantContent)
 		}
 	}
-	if quizClient.responseQuestionID != "question-1" || quizClient.responseAnswer != "a" {
-		t.Fatalf("response query = (%q, %q), want (question-1, a)", quizClient.responseQuestionID, quizClient.responseAnswer)
+	if quizClient.responseQuestionID != "question-1" || quizClient.responseAnswer != "A" {
+		t.Fatalf("response query = (%q, %q), want (question-1, A)", quizClient.responseQuestionID, quizClient.responseAnswer)
 	}
 	if quizClient.resetCalls != 1 {
 		t.Fatalf("reset calls = %d, want 1", quizClient.resetCalls)

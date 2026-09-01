@@ -10,7 +10,7 @@ require (
 	github.com/getsentry/sentry-go v0.34.1
 	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.18.0
-	github.com/the-pilot-club/tpcgo v0.0.8
+	github.com/the-pilot-club/tpcgo v0.1.2
 	gopkg.in/yaml.v3 v3.0.1
 )
 

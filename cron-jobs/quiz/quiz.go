@@ -127,7 +127,7 @@ func sendQuizAnswer(deps quizAnswerDependencies) error {
 		return errors.New("current quiz question unavailable")
 	}
 
-	ans := strings.ToLower(strings.TrimSpace(q.CorrectAnswer))
+	ans := strings.ToUpper(strings.TrimSpace(q.CorrectAnswer))
 	users, err := deps.quizClient.GetQuizUserResponses(q.ID, ans)
 	if err != nil {
 		log.Printf("GetQuizUserResponses failed (questionID=%s, ans=%q): %v", q.ID, ans, err)
