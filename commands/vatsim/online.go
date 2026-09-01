@@ -11,10 +11,9 @@ import (
 
 func VATSIMSession() (session *tpcgo.Session, err error) {
 	s, errr := tpcgo.NewSession(tpcgo.SessionConfig{
-		config.FCPToken,
-		config.FCPEnv,
-		"",
-		config.CoreAPIToken,
+		FCPKey:     config.FCPToken,
+		FCPEnv:     config.FCPEnv,
+		CoreApiKey: config.CoreAPIToken,
 	})
 	if errr != nil {
 		sentry.CaptureException(errr)

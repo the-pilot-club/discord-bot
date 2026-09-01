@@ -7,6 +7,8 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/getsentry/sentry-go"
@@ -15,6 +17,14 @@ import (
 )
 
 type LeaderboardController struct{}
+
+type UserStats struct {
+	Level        int
+	CurrentXp    int
+	TotalXp      int
+	MessageCount int
+	NoXp         bool
+}
 
 type LeaderboardPage struct {
 	TotalCount int                      `json:"totalCount"`
@@ -47,6 +57,89 @@ func (c *LeaderboardController) FindUser(id string, guildId string) (map[string]
 	var result map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	return result, err
+}
+
+func (c *LeaderboardController) FindUserStats(id, guildID string) (*UserStats, bool, error) {
+	user, err := c.FindUser(id, guildID)
+	if err != nil {
+		if strings.Contains(err.Error(), "404") {
+			return nil, false, nil
+		}
+		return nil, false, err
+	}
+
+	stats, err := parseUserStats(user)
+	if err != nil {
+		return nil, true, err
+	}
+
+	return stats, true, nil
+}
+
+func parseUserStats(user map[string]interface{}) (*UserStats, error) {
+	level, err := leaderboardInt(user, "level")
+	if err != nil {
+		return nil, err
+	}
+
+	currentXp, err := leaderboardInt(user, "xp")
+	if err != nil {
+		return nil, err
+	}
+
+	totalXp, err := leaderboardInt(user, "totalXp")
+	if err != nil {
+		return nil, err
+	}
+
+	messageCount, err := leaderboardInt(user, "messageCount")
+	if err != nil {
+		return nil, err
+	}
+
+	return &UserStats{
+		Level:        level,
+		CurrentXp:    currentXp,
+		TotalXp:      totalXp,
+		MessageCount: messageCount,
+		NoXp:         leaderboardOptionalBool(user["noXp"]),
+	}, nil
+}
+
+func leaderboardInt(user map[string]interface{}, key string) (int, error) {
+	value, ok := user[key]
+	if !ok || value == nil {
+		return 0, fmt.Errorf("leaderboard field %q missing", key)
+	}
+
+	switch v := value.(type) {
+	case float64:
+		return int(v), nil
+	case int:
+		return v, nil
+	case int64:
+		return int(v), nil
+	case string:
+		i, err := strconv.Atoi(v)
+		if err != nil {
+			return 0, fmt.Errorf("leaderboard field %q is not numeric: %w", key, err)
+		}
+		return i, nil
+	default:
+		return 0, fmt.Errorf("leaderboard field %q has unsupported type %T", key, value)
+	}
+}
+
+func leaderboardOptionalBool(value interface{}) bool {
+	switch v := value.(type) {
+	case bool:
+		return v
+	case string:
+		parsed, err := strconv.ParseBool(v)
+		return err == nil && parsed
+	default:
+		return false
+	}
 }
 
 func (c *LeaderboardController) FindLeaderboardUsers(guildId string, offset, limit int) (*LeaderboardPage, error) {

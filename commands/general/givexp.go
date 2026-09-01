@@ -45,74 +45,33 @@ func handleXpAdjustmentCommand(s *discordgo.Session, i *discordgo.InteractionCre
 		delta = -xpAmount
 	}
 	controller := &controllers.LeaderboardController{}
-	userData, err := controller.FindUser(targetUser.ID, i.GuildID)
-	userExists := err == nil
+	if remove {
+		_, found, err := controller.FindUserStats(targetUser.ID, i.GuildID)
+		if err != nil {
+			sentry.CaptureException(err)
+			editXpAdjustmentError(s, i, "XP Update Failed", "I couldn't fetch leaderboard data right now. Try again later.")
+			return
+		}
 
-	if err != nil && !leaderboardUserNotFound(err) {
+		if !found {
+			editXpAdjustmentWarning(
+				s,
+				i,
+				"No XP Removed",
+				fmt.Sprintf("<@%s> does not have leaderboard data yet, so there is no XP to remove.", targetUser.ID),
+			)
+			return
+		}
+	}
+
+	change, err := leveling.AwardXp(s, controller, i.GuildID, targetUser.ID, delta)
+	if err != nil {
 		sentry.CaptureException(err)
-		editXpAdjustmentError(s, i, "XP Update Failed", "I couldn't fetch leaderboard data right now. Try again later.")
+		editXpAdjustmentError(s, i, "XP Update Failed", "I couldn't update leaderboard data right now. Try again later.")
 		return
 	}
 
-	if !userExists && remove {
-		editXpAdjustmentWarning(
-			s,
-			i,
-			"No XP Removed",
-			fmt.Sprintf("<@%s> does not have leaderboard data yet, so there is no XP to remove.", targetUser.ID),
-		)
-		return
-	}
-
-	stats := &leaderboardStats{}
-	if userExists {
-		stats, err = parseLeaderboardStats(userData)
-		if err != nil {
-			sentry.CaptureException(err)
-			editXpAdjustmentError(s, i, "XP Update Failed", "Leaderboard data for that member could not be read.")
-			return
-		}
-	}
-
-	change := leveling.ApplyXpDelta(stats.Level, stats.CurrentXp, stats.TotalXp, delta)
-
-	if !userExists {
-		createErr := controller.CreateUserRecord(controllers.UserCreate{
-			GuildID:         i.GuildID,
-			UserID:          targetUser.ID,
-			MessageCount:    0,
-			Xp:              change.After.CurrentXp,
-			TotalXp:         change.After.TotalXp,
-			LevelXp:         change.After.NextLevelXp,
-			Level:           change.After.Level,
-			Rank:            0,
-			NoXp:            false,
-			MessageLastSent: 0,
-		}, i.GuildID)
-		if createErr != nil {
-			sentry.CaptureException(createErr)
-			editXpAdjustmentError(s, i, "XP Update Failed", "I couldn't create leaderboard data for that member.")
-			return
-		}
-	} else {
-		err = controller.UpdateUserXpState(
-			targetUser.ID,
-			change.After.Level,
-			change.After.CurrentXp,
-			change.After.TotalXp,
-			change.After.NextLevelXp,
-			i.GuildID,
-		)
-		if err != nil {
-			sentry.CaptureException(err)
-			editXpAdjustmentError(s, i, "XP Update Failed", "I couldn't update leaderboard data right now. Try again later.")
-			return
-		}
-	}
-
-	leveling.SyncRoleRewards(s, i.GuildID, targetUser.ID, controller, change.After.Level)
-
-	editXpAdjustmentEmbed(s, i, buildXpAdjustmentEmbed(i, targetUser, change, !userExists, remove))
+	editXpAdjustmentEmbed(s, i, buildXpAdjustmentEmbed(i, targetUser, change, false, remove))
 }
 
 func xpAdjustmentOptions(s *discordgo.Session, i *discordgo.InteractionCreate) (*discordgo.User, int, error) {

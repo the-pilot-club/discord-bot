@@ -27,6 +27,62 @@ type UserProgressChange struct {
 	AppliedDelta   int
 }
 
+type leaderboardXpStore interface {
+	FindUserStats(id, guildID string) (*controllers.UserStats, bool, error)
+	CreateUserRecord(data controllers.UserCreate, guildID string) error
+	UpdateUserXpState(id string, level, xp, totalXp, levelXp int, guildID string) error
+}
+
+func AwardXp(s *discordgo.Session, controller *controllers.LeaderboardController, guildID, userID string, amount int) (UserProgressChange, error) {
+	return awardXp(controller, guildID, userID, amount, func(newLevel int) {
+		SyncRoleRewards(s, guildID, userID, controller, newLevel)
+	})
+}
+
+func awardXp(store leaderboardXpStore, guildID, userID string, amount int, syncRoleRewards func(newLevel int)) (UserProgressChange, error) {
+	stats, found, err := store.FindUserStats(userID, guildID)
+	if err != nil {
+		return UserProgressChange{}, err
+	}
+
+	if stats == nil {
+		stats = &controllers.UserStats{}
+	}
+
+	change := ApplyXpDelta(stats.Level, stats.CurrentXp, stats.TotalXp, amount)
+	if !found {
+		err = store.CreateUserRecord(controllers.UserCreate{
+			GuildID:         guildID,
+			UserID:          userID,
+			MessageCount:    0,
+			Xp:              change.After.CurrentXp,
+			TotalXp:         change.After.TotalXp,
+			LevelXp:         change.After.NextLevelXp,
+			Level:           change.After.Level,
+			Rank:            0,
+			NoXp:            false,
+			MessageLastSent: 0,
+		}, guildID)
+	} else {
+		err = store.UpdateUserXpState(
+			userID,
+			change.After.Level,
+			change.After.CurrentXp,
+			change.After.TotalXp,
+			change.After.NextLevelXp,
+			guildID,
+		)
+	}
+	if err != nil {
+		return UserProgressChange{}, err
+	}
+
+	if syncRoleRewards != nil {
+		syncRoleRewards(change.After.Level)
+	}
+	return change, nil
+}
+
 func TotalXpForLevel(level int) int {
 	if level <= 0 {
 		return 0
