@@ -35,7 +35,13 @@ All the other values within the env file can remain the same as they are setup f
 Once that is complete, run the following command to start the bot:
 
 ```
-go run cmd/main.go
+go run ./cmd/bot
+```
+
+Scheduled jobs run as one-shot commands from the cron binary:
+
+```
+go run ./cmd/cron <event-reminder|airac-reminder|quiz-question|quiz-answer>
 ```
 
 Your bot is now running! 

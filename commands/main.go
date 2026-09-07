@@ -15,10 +15,13 @@ func genEnvGuild() string {
 	return ""
 }
 
+var PositiveXpMin float64 = 1
+
 var (
 	AdminPerms     int64 = discordgo.PermissionAdministrator
 	StaffPerms     int64 = discordgo.PermissionMentionEveryone
 	ModPerms       int64 = discordgo.PermissionBanMembers
+	dmDisabled           = false
 	GuildID              = flag.String("guild", genEnvGuild(), "Test guild ID. If not passed - bot registers commands globally")
 	GlobalCommands       = []*discordgo.ApplicationCommand{
 		// fun
@@ -175,11 +178,27 @@ var (
 			Name:        "fcp-link",
 			Description: "The link to the Flight Crew Portal",
 		},
+		{
+			Name:        "staff-vacancies",
+			Description: "Gives the link to Staff Vacancies",
+		},
 
 		// General
 		{
 			Name:        "leaderboard",
-			Description: "The link to find our leaderboard!",
+			Description: "Displays the current leaderboard",
+		},
+		{
+			Name:        "rank",
+			Description: "Displays your leaderboard rank and leveling progress",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "member",
+					Description: "The member whose rank you want to check",
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Required:    false,
+				},
+			},
 		},
 		{
 			Name:        "member-count",
@@ -192,6 +211,16 @@ var (
 		{
 			Name:        "server-commands",
 			Description: "The link to get a list of server commands!",
+		},
+		{
+			Name:        "training-faq",
+			Description: "Replies with information about training!",
+		},
+		{
+			Name:                     "active-threads",
+			Description:              "Live-generates a clickable list of active server threads.",
+			DMPermission:             &dmDisabled,
+			DefaultMemberPermissions: &StaffPerms,
 		},
 		// Giveaway
 		{
@@ -226,12 +255,173 @@ var (
 					Name:        "amount",
 					Description: "Amount of XP to give as a whole number - no partial gimmies here!",
 					Required:    true,
+					MinValue:    &PositiveXpMin,
+				},
+			},
+		},
+		{
+			Name:                     "removexp",
+			Description:              "Remove XP from a user",
+			DefaultMemberPermissions: &StaffPerms,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Name:        "user",
+					Description: "The user to remove XP from",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionInteger,
+					Name:        "amount",
+					Description: "Amount of XP to remove as a whole number",
+					Required:    true,
+					MinValue:    &PositiveXpMin,
+				},
+			},
+		},
+		{
+			Name:                     "set-user-no-xp",
+			Description:              "Enable or disable XP gain for a user",
+			DefaultMemberPermissions: &StaffPerms,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Name:        "user",
+					Description: "The user whose XP eligibility you want to update",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "enabled",
+					Description: "Set to true to disable XP gain for this user",
+					Required:    true,
 				},
 			},
 		},
 
 		// Suggestions
-
+		{
+			Name:         "idea",
+			Description:  "Share an idea that would improve the club",
+			DMPermission: &dmDisabled,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "your-idea",
+					Description: "Describe your idea",
+					Required:    true,
+					MaxLength:   4096,
+				},
+			},
+		},
+		{
+			Name:                     "idea-admin",
+			Description:              "Manage idea statuses and staff notes.",
+			DMPermission:             &dmDisabled,
+			DefaultMemberPermissions: &AdminPerms,
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "implement",
+					Description: "Mark an idea as implemented",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Name:        "idea-number",
+							Description: "The idea number to mark as implemented",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "An optional staff note about the implementation",
+							Required:    false,
+							MaxLength:   1024,
+						},
+					},
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "consider",
+					Description: "Mark an idea as under review",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Name:        "idea-number",
+							Description: "The idea number to mark as under review",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "An optional staff note about the review",
+							Required:    false,
+							MaxLength:   1024,
+						},
+					},
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "deny",
+					Description: "Mark an idea as denied",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Name:        "idea-number",
+							Description: "The idea number to mark as denied",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "An optional staff note about the denial",
+							Required:    false,
+							MaxLength:   1024,
+						},
+					},
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "approve",
+					Description: "Mark an idea as approved",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Name:        "idea-number",
+							Description: "The idea number to mark as approved",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "An optional staff note about the approval",
+							Required:    false,
+							MaxLength:   1024,
+						},
+					},
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Name:        "edit-reason",
+					Description: "Update the staff note for an idea",
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionInteger,
+							Name:        "idea-number",
+							Description: "The idea number whose staff note you want to update",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "reason",
+							Description: "The new staff note",
+							Required:    true,
+							MaxLength:   1024,
+						},
+					},
+				},
+			},
+		},
 		//Training
 		{
 			Name:        "training-request",
