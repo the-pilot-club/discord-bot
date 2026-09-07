@@ -108,7 +108,7 @@ func GetOnlineMembers(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			callsigns += fmt.Sprintf("- %v - %v - %v\n", v.Callsign, v.Name, v.CID)
 		}
 	} else {
-		callsigns += "**Remarks Set Correctly:**\n- None"
+		callsigns += "**Remarks Set Correctly:**\n- None\n"
 	}
 	if len(onlineMembersNoFlightPlan) > 0 {
 		callsigns += "**TPC Callsign With No Flight Plan on File:**\n"
