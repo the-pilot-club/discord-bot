@@ -2,114 +2,58 @@ package util
 
 import (
 	"context"
-	"fmt"
+	"strings"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/carlmjohnson/requests"
-	"github.com/getsentry/sentry-go"
-	"strings"
-	"tpc-discord-bot/internal/config"
 )
 
-var ICAO []Airport
-var Weather string
-
-func getWeatherMetar(m string, s *discordgo.Session, i *discordgo.InteractionCreate) {
+func getWeatherMetar(icao string) (string, error) {
+	var weather string
 	err := requests.
 		URL("https://aviationweather.gov/api/data/metar").
-		Param("ids", m).
+		Param("ids", icao).
 		Accept("text/plain").
-		ToString(&Weather).
-		CheckStatus(200).
+		ToString(&weather).
+		CheckStatus(200, 204).
 		Fetch(context.Background())
-	if err != nil {
-		ierr := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "This command could not be completed as dailed. Please try again later",
-				Flags:   discordgo.MessageFlagsEphemeral,
-			},
-		})
-		if ierr != nil {
-			fmt.Println(err)
-			sentry.CaptureException(err)
-			return
-		}
-		fmt.Println(err)
-		sentry.CaptureException(err)
-		return
-	}
-}
-
-func getAirportInfoMetar(v string, s *discordgo.Session, i *discordgo.InteractionCreate) {
-
-	builder := requests.Builder{}
-	builder.CheckStatus(200)
-	err := builder.BaseURL("https://api.api-ninjas.com/v1/airports").
-		Param("iata", v).
-		Accept("application/json").
-		Header("X-Api-Key", config.NinjaApiKey).
-		ToJSON(&ICAO).
-		CheckStatus(200).
-		Fetch(context.Background())
-	if err != nil {
-		ierr := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "This command could not be completed as dailed. Please try again later",
-				Flags:   discordgo.MessageFlagsEphemeral,
-			},
-		})
-		if ierr != nil {
-			fmt.Println(err)
-			sentry.CaptureException(err)
-			return
-		}
-		fmt.Println(err)
-		sentry.CaptureException(err)
-		return
-	}
+	return strings.TrimSpace(weather), err
 }
 
 func MetarCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	var AirportCode string
+	code := codeOption(i)
 
-	options := i.ApplicationCommandData().Options
-
-	if options[0].Name == "icao-code" {
-		code := options[0].Options
-		getWeatherMetar(code[0].StringValue(), s, i)
-		if Weather == "" {
-			Weather = "Not Available"
-		}
-		AirportCode = strings.ToUpper(code[0].StringValue())
-
+	if !deferOrLog(s, i) {
+		return
 	}
 
-	if options[0].Name == "iata-code" {
-		code := options[0].Options
-		getAirportInfoMetar(code[0].StringValue(), s, i)
+	icao, userMsg, err := resolveICAO(code)
+	if err != nil {
+		respondFailure(s, i, err)
+		return
+	}
+	if userMsg != "" {
+		editResponseText(s, i, userMsg)
+		return
+	}
 
-		if len(ICAO) != 0 {
-			getWeatherMetar(ICAO[0].Icao, s, i)
-			if Weather == "" {
-				Weather = "Not Available"
-			}
-			AirportCode = strings.ToUpper(ICAO[0].Icao)
-		} else {
-			AirportCode = strings.ToUpper(code[0].StringValue())
-			Weather = "Could not find airport."
-		}
-
+	weather, err := getWeatherMetar(icao)
+	if err != nil {
+		respondFailure(s, i, err)
+		return
+	}
+	if weather == "" {
+		weather = "Not Available"
 	}
 
 	embed := &discordgo.MessageEmbed{
 		Title:       "Weather Report",
-		Description: AirportCode,
+		Description: icao,
 		Color:       3651327,
 		Fields: []*discordgo.MessageEmbedField{
 			{
 				Name:  "METAR",
-				Value: Weather,
+				Value: truncate(weather, 1024),
 			},
 		},
 		Footer: &discordgo.MessageEmbedFooter{
@@ -118,29 +62,7 @@ func MetarCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	}
 
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Embeds: []*discordgo.MessageEmbed{
-				embed,
-			},
-		},
+	editResponse(s, i, &discordgo.WebhookEdit{
+		Embeds: &[]*discordgo.MessageEmbed{embed},
 	})
-	if err != nil {
-		ierr := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "This command could not be completed as dailed. Please try again later",
-				Flags:   discordgo.MessageFlagsEphemeral,
-			},
-		})
-		if ierr != nil {
-			fmt.Println(err)
-			sentry.CaptureException(err)
-			return
-		}
-		fmt.Println(err)
-		sentry.CaptureException(err)
-		return
-	}
 }

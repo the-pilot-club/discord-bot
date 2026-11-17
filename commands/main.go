@@ -16,6 +16,21 @@ func genEnvGuild() string {
 }
 
 var PositiveXpMin float64 = 1
+var airportCodeMinLength = 3
+
+// airportCodeOptions is the shared option for commands that accept an ICAO or IATA airport code.
+func airportCodeOptions() []*discordgo.ApplicationCommandOption {
+	return []*discordgo.ApplicationCommandOption{
+		{
+			Type:        discordgo.ApplicationCommandOptionString,
+			Name:        "code",
+			Description: "ICAO (e.g. KJFK) or IATA (e.g. JFK) code of the airport",
+			Required:    true,
+			MinLength:   &airportCodeMinLength,
+			MaxLength:   4,
+		},
+	}
+}
 
 var (
 	AdminPerms     int64 = discordgo.PermissionAdministrator
@@ -37,71 +52,22 @@ var (
 		{
 			Name:        "airport",
 			Description: "Displays Information about the selected airport",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Type:        discordgo.ApplicationCommandOptionString,
-					Name:        "icao",
-					Description: "What is the ICAO of the Airport?",
-					Required:    true,
-					MaxLength:   4,
-				},
-			},
+			Options:     airportCodeOptions(),
 		},
 		{
 			Name:        "charts",
 			Description: "Displays the charts of an airport.",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Name:        "icao",
-					Description: "The ICAO code of the airport",
-					Type:        discordgo.ApplicationCommandOptionString,
-					Required:    true,
-				},
-			},
+			Options:     airportCodeOptions(),
 		},
 		{
 			Name:        "taf",
 			Description: "Displays the taf of an airport.",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Name:        "icao",
-					Description: "The ICAO code of the airport",
-					Type:        discordgo.ApplicationCommandOptionString,
-					Required:    true,
-				},
-			},
+			Options:     airportCodeOptions(),
 		},
 		{
 			Name:        "metar",
 			Description: "Gives METAR for a Specific Airport",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Name:        "icao-code",
-					Description: "use an ICAO to get a METAR request",
-					Options: []*discordgo.ApplicationCommandOption{
-						{
-							Type:        discordgo.ApplicationCommandOptionString,
-							Name:        "icao",
-							Description: "The ICAO of the Airport",
-							Required:    true,
-						},
-					},
-					Type: discordgo.ApplicationCommandOptionSubCommand,
-				},
-				{
-					Name:        "iata-code",
-					Description: "use an IATA to get a METAR request",
-					Options: []*discordgo.ApplicationCommandOption{
-						{
-							Type:        discordgo.ApplicationCommandOptionString,
-							Name:        "iata",
-							Description: "The IATA of the Airport",
-							Required:    true,
-						},
-					},
-					Type: discordgo.ApplicationCommandOptionSubCommand,
-				},
-			},
+			Options:     airportCodeOptions(),
 		},
 
 		// VATSIM
