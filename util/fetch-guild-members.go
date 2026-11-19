@@ -2,30 +2,27 @@ package util
 
 import (
 	"github.com/bwmarrin/discordgo"
-	"github.com/getsentry/sentry-go"
 )
 
-func FetchAllMembers(s *discordgo.Session, guildId string) []*discordgo.Member {
-	data := make(chan *discordgo.GuildMembersChunk)
-	var completedMC *discordgo.GuildMembersChunk
+// FetchAllMembers returns every member of the guild, paging through the REST
+// API 1000 members at a time.
+//
+// It previously asked the gateway for member chunks, which only ever read the
+// first chunk (so guilds over 1000 members were truncated), could miss the
+// reply entirely because the handler was registered after the request, and
+// then blocked forever.
+func FetchAllMembers(s *discordgo.Session, guildID string) ([]*discordgo.Member, error) {
 	var members []*discordgo.Member
-	err := s.RequestGuildMembers(guildId, "", 0, "", false)
-	if err != nil {
-		sentry.CaptureException(err)
-		panic(err)
+	after := ""
+	for {
+		page, err := s.GuildMembers(guildID, after, 1000)
+		if err != nil {
+			return nil, err
+		}
+		members = append(members, page...)
+		if len(page) < 1000 {
+			return members, nil
+		}
+		after = page[len(page)-1].User.ID
 	}
-
-	s.AddHandlerOnce(func(s *discordgo.Session, mc *discordgo.GuildMembersChunk) {
-		completedMC = mc
-		data <- completedMC
-		close(data)
-	})
-
-	finshedData := <-data
-
-	for _, m := range finshedData.Members {
-		members = append(members, m)
-	}
-
-	return members
 }

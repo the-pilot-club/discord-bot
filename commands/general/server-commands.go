@@ -22,7 +22,7 @@ func ServerCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	response := &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content:    "Here is a full list of member friendly commands:",
+			Content:    "Here is the full list of member commands:",
 			Components: []discordgo.MessageComponent{actionRow},
 		},
 	}

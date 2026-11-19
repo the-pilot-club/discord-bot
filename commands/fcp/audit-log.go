@@ -3,10 +3,11 @@ package fcp
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/getsentry/sentry-go"
 	"github.com/the-pilot-club/tpcgo"
-	"time"
 )
 
 func AddAuditLogCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -33,7 +34,7 @@ func AddAuditLogCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		Text:        e,
 	})
 	if err != nil {
-		if errors.As(err, &tpcgo.ErrBadForm) {
+		if errors.Is(err, tpcgo.ErrBadForm) {
 			v, ferr := fs.AddFCPUser(&tpcgo.FCPUserAdd{UserID: u.ID})
 			if ferr != nil {
 				sentry.CaptureException(err)

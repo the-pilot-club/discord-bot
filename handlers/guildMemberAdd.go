@@ -3,11 +3,13 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/getsentry/sentry-go"
 	"github.com/the-pilot-club/tpcgo"
-	"log"
-	"time"
+
 	"tpc-discord-bot/internal/config"
 	"tpc-discord-bot/util"
 )
@@ -15,14 +17,13 @@ import (
 func FCPSession() (s *tpcgo.Session, err error) {
 
 	s, errr := tpcgo.NewSession(tpcgo.SessionConfig{
-		config.FCPToken,
-		config.FCPEnv,
-		"",
-		config.CoreAPIToken,
+		FCPKey:     config.FCPToken,
+		FCPEnv:     config.FCPEnv,
+		CoreApiKey: config.CoreAPIToken,
 	})
 	if errr != nil {
-		sentry.CaptureException(err)
-		return nil, err
+		sentry.CaptureException(errr)
+		return nil, errr
 	}
 	return s, nil
 
@@ -36,7 +37,7 @@ func OnGuildMemberAdd(s *discordgo.Session, m *discordgo.GuildMemberAdd) {
 	}
 	_, err = f.AddFCPUser(&tpcgo.FCPUserAdd{UserID: m.User.ID})
 	if err != nil {
-		if !errors.As(err, &tpcgo.ErrAlreadyReported) {
+		if !errors.Is(err, tpcgo.ErrAlreadyReported) {
 			sentry.CaptureException(err)
 			fmt.Println(err)
 			return

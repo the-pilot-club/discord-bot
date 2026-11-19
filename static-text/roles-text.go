@@ -42,7 +42,7 @@ func SetSOPRolesText(guildId string) string {
 	output += fmt.Sprintf("<:Insiders:996214296503652383> <@&%v> - Opt-in to get pinged with Club updates to stay in the loop\n", config.GetRoleId(guildId, "Insiders"))
 	output += fmt.Sprintf("<:training:895480894901592074> <@&%v> : TPC Flight School participants\n", config.GetRoleId(guildId, "Flight School"))
 	output += fmt.Sprintf("<:helicopter:1167835494869110784> <@&%v>: Helicopter Pilots\n\n", config.GetRoleId(guildId, "Helicopter"))
-	output += "Click the button below to get self-assigned roles:\n "
+	output += "Click the buttons below to assign yourself roles:\n "
 
 	return output
 

@@ -1,47 +1,59 @@
 package giveaway
 
 import (
+	"fmt"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/getsentry/sentry-go"
+
 	"tpc-discord-bot/internal/config"
 	"tpc-discord-bot/util"
 )
 
 func ResetGiveaway(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: "Resting Giveaway. This command takes some time so the bot will end with this message!",
-			Flags:   discordgo.MessageFlagsEphemeral,
+			Flags: discordgo.MessageFlagsEphemeral,
 		},
 	})
 	if err != nil {
 		sentry.CaptureException(err)
-		panic(err)
+		return
 	}
-	members := util.FetchAllMembers(s, i.GuildID)
-	var giveawayMembers []*discordgo.Member
-	for _, r := range members {
-		oldroles := make(map[string]string)
-		newroles := new([]string)
-		for _, role := range r.Roles {
-			oldroles[role] = role
-		}
-		roleId := config.GetRoleId(i.GuildID, "Giveaway")
-		if oldroles[roleId] == roleId {
-			delete(oldroles, roleId)
-			for _, rl := range oldroles {
-				*newroles = append(*newroles, rl)
+
+	roleID := config.GetRoleId(i.GuildID, "Giveaway")
+	if roleID == "" {
+		editGiveawayText(s, i, "The Giveaway role is not configured for this server.")
+		return
+	}
+
+	members, err := util.FetchAllMembers(s, i.GuildID)
+	if err != nil {
+		sentry.CaptureException(err)
+		editGiveawayText(s, i, "Could not fetch server members. Please try again later.")
+		return
+	}
+
+	removed, failed := 0, 0
+	for _, m := range members {
+		for _, role := range m.Roles {
+			if role != roleID {
+				continue
 			}
-			giveawayMembers = append(giveawayMembers, &discordgo.Member{User: r.User, Roles: *newroles})
+			if err := s.GuildMemberRoleRemove(i.GuildID, m.User.ID, roleID); err != nil {
+				sentry.CaptureException(err)
+				failed++
+			} else {
+				removed++
+			}
+			break
 		}
 	}
-	for _, m := range giveawayMembers {
-		_, err = s.GuildMemberEdit(i.GuildID, m.User.ID, &discordgo.GuildMemberParams{
-			Roles: &m.Roles,
-		})
-		if err != nil {
-			panic(err)
-		}
+
+	msg := fmt.Sprintf("Giveaway reset: removed the Giveaway role from %d member(s).", removed)
+	if failed > 0 {
+		msg += fmt.Sprintf(" %d removal(s) failed; check the bot's role permissions.", failed)
 	}
+	editGiveawayText(s, i, msg)
 }

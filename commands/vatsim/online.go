@@ -11,10 +11,9 @@ import (
 
 func VATSIMSession() (session *tpcgo.Session, err error) {
 	s, errr := tpcgo.NewSession(tpcgo.SessionConfig{
-		config.FCPToken,
-		config.FCPEnv,
-		"",
-		config.CoreAPIToken,
+		FCPKey:     config.FCPToken,
+		FCPEnv:     config.FCPEnv,
+		CoreApiKey: config.CoreAPIToken,
 	})
 	if errr != nil {
 		sentry.CaptureException(errr)
@@ -109,7 +108,7 @@ func GetOnlineMembers(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			callsigns += fmt.Sprintf("- %v - %v - %v\n", v.Callsign, v.Name, v.CID)
 		}
 	} else {
-		callsigns += "**Remarks Set Correctly:**\n- None"
+		callsigns += "**Remarks Set Correctly:**\n- None\n"
 	}
 	if len(onlineMembersNoFlightPlan) > 0 {
 		callsigns += "**TPC Callsign With No Flight Plan on File:**\n"

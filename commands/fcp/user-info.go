@@ -3,10 +3,11 @@ package fcp
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/getsentry/sentry-go"
 	"github.com/the-pilot-club/tpcgo"
-	"time"
 )
 
 func UserInfoFCP(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -24,12 +25,13 @@ func UserInfoFCP(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if err != nil {
 		sentry.CaptureException(err)
 		fmt.Println(err)
+		respondUserInfoError(s, i)
 		return
 	}
 	u, ferr := f.GetFCPUser(me.ID)
 	if ferr != nil {
 		fmt.Println(ferr)
-		if errors.As(ferr, &tpcgo.ErrNotFound) {
+		if errors.Is(ferr, tpcgo.ErrNotFound) {
 			var content string
 			content += "Request could not be completed as dialed. Please try again later"
 			_, errr := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
@@ -42,7 +44,7 @@ func UserInfoFCP(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			return
 		} else {
 			sentry.CaptureException(ferr)
-			fmt.Println(ferr)
+			respondUserInfoError(s, i)
 			return
 		}
 	}
@@ -50,6 +52,7 @@ func UserInfoFCP(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if err != nil {
 		sentry.CaptureException(err)
 		fmt.Println(err)
+		respondUserInfoError(s, i)
 		return
 	}
 
@@ -151,5 +154,16 @@ func UserInfoFCP(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if err != nil {
 		sentry.CaptureException(err)
 		return
+	}
+}
+
+// respondUserInfoError replaces the deferred "thinking..." response so the
+// interaction doesn't hang when a lookup fails.
+func respondUserInfoError(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	content := "Something went wrong fetching this member's FCP info. Please try again later."
+	if _, err := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Content: &content,
+	}); err != nil {
+		sentry.CaptureException(err)
 	}
 }

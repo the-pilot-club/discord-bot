@@ -2,13 +2,21 @@ package event_responses
 
 import (
 	"fmt"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/getsentry/sentry-go"
+
+	"tpc-discord-bot/commands/general"
 	"tpc-discord-bot/internal/config"
 )
 
 func HandleButtonSubmit(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	buttonData := i.MessageComponentData()
+
+	if general.IsLeaderboardPaginationButton(buttonData.CustomID) {
+		general.HandleLeaderboardPagination(s, i)
+		return
+	}
 
 	switch buttonData.CustomID {
 	case "onboarded":

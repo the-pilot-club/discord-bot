@@ -7,7 +7,7 @@ import (
 	"tpc-discord-bot/internal/config"
 )
 
-func HandleCLientReady(s *discordgo.Session) {
+func HandleClientReady(s *discordgo.Session) {
 	err := s.UpdateGameStatus(0, "Microsoft Flight Simulator 2024")
 	if err != nil {
 		sentry.CaptureException(err)

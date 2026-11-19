@@ -1,15 +1,15 @@
 package event_responses
 
 import (
+	"github.com/bwmarrin/discordgo"
 	"tpc-discord-bot/commands/admin"
 	"tpc-discord-bot/commands/charters"
 	"tpc-discord-bot/commands/fcp"
 	"tpc-discord-bot/commands/general"
 	"tpc-discord-bot/commands/giveaway"
+	"tpc-discord-bot/commands/suggestions"
 	"tpc-discord-bot/commands/training"
 	"tpc-discord-bot/commands/vatsim"
-
-	"github.com/bwmarrin/discordgo"
 )
 
 func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -29,6 +29,9 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"fcp-link": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go fcp.SendFCPLink(s, i)
 		},
+		"staff-vacancies": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go fcp.SendStaffVacancies(s, i)
+		},
 		"get-callsign": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go fcp.GetFcpCallsign(s, i)
 		},
@@ -47,11 +50,20 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		"leaderboard": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go general.HandleLeaderboardCommand(s, i)
 		},
+		"rank": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go general.HandleRankCommand(s, i)
+		},
 		"get-online-members": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go vatsim.GetOnlineMembers(s, i)
 		},
 		"givexp": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go general.HandleGiveXpCommand(s, i)
+		},
+		"removexp": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go general.HandleRemoveXpCommand(s, i)
+		},
+		"set-user-no-xp": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go general.HandleSetUserNoXpCommand(s, i)
 		},
 		"giveaway": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go giveaway.GiveawayMain(s, i)
@@ -73,6 +85,18 @@ func GuildCommands(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 		"training-request": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			go training.TrainingRequest(s, i)
+		},
+		"training-faq": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go general.HandleTrainingFAQ(s, i)
+		},
+		"active-threads": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go general.HandleActiveThreadsCommand(s, i)
+		},
+		"idea": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go suggestions.IdeaCommand(s, i)
+		},
+		"idea-admin": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+			go suggestions.IdeaAdminCommand(s, i)
 		},
 	}
 	if h, ok := GuildCommandHandler[i.ApplicationCommandData().Name]; ok {

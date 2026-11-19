@@ -16,23 +16,18 @@ func NextFlight(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	})
 	if err != nil {
 		sentry.CaptureException(err)
-		panic(err)
+		return
 	}
 
 	events, err := s.GuildScheduledEvents(i.GuildID, false)
-
 	if err != nil {
 		sentry.CaptureException(err)
-		panic(err)
+		editNextFlightText(s, i, "We have a problem..... I am not able to retrieve the events right now. Please try again later.")
+		return
 	}
 	if len(events) == 0 {
-		err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "We have a problem..... There is no events posted or I am not able to retrieve them",
-				Flags:   discordgo.MessageFlagsEphemeral,
-			},
-		})
+		editNextFlightText(s, i, "There are no group flights posted right now.")
+		return
 	}
 	sort.Slice(events, func(i, j int) bool {
 		return events[i].ScheduledStartTime.Before(events[j].ScheduledStartTime)
@@ -88,6 +83,13 @@ func NextFlight(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	})
 	if err != nil {
 		sentry.CaptureException(err)
-		panic(err)
+	}
+}
+
+func editNextFlightText(s *discordgo.Session, i *discordgo.InteractionCreate, content string) {
+	if _, err := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Content: &content,
+	}); err != nil {
+		sentry.CaptureException(err)
 	}
 }
