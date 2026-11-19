@@ -2,65 +2,57 @@ package giveaway
 
 import (
 	"fmt"
-	"github.com/bwmarrin/discordgo"
-	"github.com/getsentry/sentry-go"
 	"math/rand"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/getsentry/sentry-go"
+
 	"tpc-discord-bot/internal/config"
 	"tpc-discord-bot/util"
 )
 
 func PekrsGiveaway(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	mem := util.FetchAllMembers(s, i.GuildID)
-
-	var roledMembers []*discordgo.Member
-
-	if len(mem) == 0 {
-		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Error in the command. Please reach out to the Tech Team for further troubleshooting. \n\n ERROR AREA: NO MEMBERS FOUND",
-			},
-		})
-		if err != nil {
-			sentry.CaptureException(err)
-			panic(err)
-		}
+	if !deferGiveaway(s, i) {
+		return
 	}
 
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{},
-	})
+	mem, err := util.FetchAllMembers(s, i.GuildID)
 	if err != nil {
 		sentry.CaptureException(err)
-		panic(err)
+		editGiveawayText(s, i, "Error in the command. Please reach out to the Tech Team for further troubleshooting. \n\n ERROR AREA: COULD NOT FETCH MEMBERS")
+		return
 	}
 
+	// Entries per role: VIP gets 3, Frequent Flyer 2, the rest 1. Unset roles
+	// resolve to "" and are skipped so they can't match anything.
+	weights := map[string]int{}
+	addWeight := func(name string, n int) {
+		if id := config.GetRoleId(i.GuildID, name); id != "" {
+			weights[id] = n
+		}
+	}
+	addWeight("VIP", 3)
+	addWeight("Frequent Flyer", 2)
+	addWeight("Commuter", 1)
+	addWeight("Early Adopters", 1)
+	addWeight("Charters Top Gun", 1)
+
+	var roledMembers []*discordgo.Member
 	for _, m := range mem {
 		for _, role := range m.Roles {
-			if role == config.GetRoleId(i.GuildID, "VIP") {
-				for i := 0; i < 3; i++ {
-					roledMembers = append(roledMembers, m)
-				}
-			} else if role == config.GetRoleId(i.GuildID, "Frequent Flyer") {
-				for i := 0; i < 2; i++ {
-					roledMembers = append(roledMembers, m)
-				}
-			} else if role == config.GetRoleId(i.GuildID, "Commuter") || role == config.GetRoleId(i.GuildID, "Early Adopters") || role == config.GetRoleId(i.GuildID, "Charters Top Gun") {
+			for n := 0; n < weights[role]; n++ {
 				roledMembers = append(roledMembers, m)
 			}
 		}
 	}
 
-	// Seed the random number generator to ensure different results each run
-	rand.New(rand.NewSource(time.Now().UnixNano()))
+	if len(roledMembers) == 0 {
+		editGiveawayText(s, i, "No members have an eligible perks role, so there is no one to pick.")
+		return
+	}
 
-	// Generate a random index within the bounds of the array
-	randomIndex := rand.Intn(len(roledMembers))
-
-	// Access the element at the random index
-	randomElement := roledMembers[randomIndex]
+	randomElement := roledMembers[rand.Intn(len(roledMembers))]
 
 	embed := &discordgo.MessageEmbed{
 		Author: &discordgo.MessageEmbedAuthor{
@@ -73,20 +65,15 @@ func PekrsGiveaway(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	}
 
-	var editedEmbed []*discordgo.MessageEmbed
-
-	editedEmbed = append(editedEmbed, embed)
-
 	embedString := fmt.Sprintf("Congrats <@%v>!", randomElement.User.ID)
 
 	time.Sleep(3 * time.Second)
 
 	_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 		Content: &embedString,
-		Embeds:  &editedEmbed,
+		Embeds:  &[]*discordgo.MessageEmbed{embed},
 	})
 	if err != nil {
 		sentry.CaptureException(err)
-		panic(err)
 	}
 }

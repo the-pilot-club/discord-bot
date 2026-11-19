@@ -23,7 +23,18 @@ var Env = os.Getenv("GO_ENV")
 var ConfigPath = os.Getenv("CONFIG_PATH")
 var NinjaApiKey = os.Getenv("NINJA_API_KEY")
 var FCPToken = os.Getenv("FCP_TOKEN")
-var FCPEnv = os.Getenv("FCP_ENV")
+
+// FCPEnv selects the FCP deployment ("production" or "beta"). tpcgo returns an
+// empty base URL for any other value, so default to production when unset.
+var FCPEnv = resolveFCPEnv(os.Getenv("FCP_ENV"))
+
+func resolveFCPEnv(value string) string {
+	if strings.EqualFold(strings.TrimSpace(value), "beta") {
+		return "beta"
+	}
+	return "production"
+}
+
 var CoreAPIToken = os.Getenv("INTERNAL_API_KEY")
 var CoreAPIEnv = os.Getenv("CORE_API_ENV")
 var RedisURL = os.Getenv("REDIS_URL")

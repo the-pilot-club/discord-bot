@@ -22,7 +22,7 @@ func SendStaffVacancies(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	response := &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content:    "Here is a link to Staff Vacancies:",
+			Content:    "Here is a link to our current Staff vacancies:",
 			Components: []discordgo.MessageComponent{actionRow},
 		},
 	}

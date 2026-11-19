@@ -2,57 +2,48 @@ package giveaway
 
 import (
 	"fmt"
-	"github.com/bwmarrin/discordgo"
-	"github.com/getsentry/sentry-go"
 	"math/rand"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/getsentry/sentry-go"
+
 	"tpc-discord-bot/internal/config"
 	"tpc-discord-bot/util"
 )
 
 func GiveawayMain(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	mem := util.FetchAllMembers(s, i.GuildID)
-
-	var roledMembers []*discordgo.Member
-
-	if len(mem) == 0 {
-		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Error in the command. Please reach out to the Tech Team for further troubleshooting. \n\n ERROR AREA: NO MEMBERS FOUND",
-			},
-		})
-		if err != nil {
-			sentry.CaptureException(err)
-			panic(err)
-		}
+	// Defer first: fetching every member can take longer than Discord's
+	// 3-second window for an initial response.
+	if !deferGiveaway(s, i) {
+		return
 	}
 
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{},
-	})
+	mem, err := util.FetchAllMembers(s, i.GuildID)
 	if err != nil {
 		sentry.CaptureException(err)
-		panic(err)
+		editGiveawayText(s, i, "Error in the command. Please reach out to the Tech Team for further troubleshooting. \n\n ERROR AREA: COULD NOT FETCH MEMBERS")
+		return
 	}
 
-	for _, m := range mem {
-		for _, role := range m.Roles {
-			if role == config.GetRoleId(i.GuildID, "Giveaway") {
-				roledMembers = append(roledMembers, m)
+	roleID := config.GetRoleId(i.GuildID, "Giveaway")
+	var roledMembers []*discordgo.Member
+	if roleID != "" {
+		for _, m := range mem {
+			for _, role := range m.Roles {
+				if role == roleID {
+					roledMembers = append(roledMembers, m)
+				}
 			}
 		}
 	}
 
-	// Seed the random number generator to ensure different results each run
-	rand.New(rand.NewSource(time.Now().UnixNano()))
+	if len(roledMembers) == 0 {
+		editGiveawayText(s, i, "No members have the Giveaway role, so there is no one to pick.")
+		return
+	}
 
-	// Generate a random index within the bounds of the array
-	randomIndex := rand.Intn(len(roledMembers))
-
-	// Access the element at the random index
-	randomElement := roledMembers[randomIndex]
+	randomElement := roledMembers[rand.Intn(len(roledMembers))]
 
 	embed := &discordgo.MessageEmbed{
 		Author: &discordgo.MessageEmbedAuthor{
@@ -65,20 +56,37 @@ func GiveawayMain(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	}
 
-	var editedEmbed []*discordgo.MessageEmbed
-
-	editedEmbed = append(editedEmbed, embed)
-
 	embedString := fmt.Sprintf("Congrats <@%v>!", randomElement.User.ID)
 
 	time.Sleep(3 * time.Second)
 
 	_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 		Content: &embedString,
-		Embeds:  &editedEmbed,
+		Embeds:  &[]*discordgo.MessageEmbed{embed},
 	})
 	if err != nil {
 		sentry.CaptureException(err)
-		panic(err)
+	}
+}
+
+// deferGiveaway sends the "thinking..." response and reports whether the
+// handler should continue.
+func deferGiveaway(s *discordgo.Session, i *discordgo.InteractionCreate) bool {
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{},
+	})
+	if err != nil {
+		sentry.CaptureException(err)
+		return false
+	}
+	return true
+}
+
+func editGiveawayText(s *discordgo.Session, i *discordgo.InteractionCreate, content string) {
+	if _, err := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Content: &content,
+	}); err != nil {
+		sentry.CaptureException(err)
 	}
 }

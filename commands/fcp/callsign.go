@@ -17,8 +17,8 @@ func FCPSession() (session *tpcgo.Session, err error) {
 		CoreApiKey: config.CoreAPIToken,
 	})
 	if errr != nil {
-		sentry.CaptureException(err)
-		return nil, err
+		sentry.CaptureException(errr)
+		return nil, errr
 	}
 	return s, nil
 
